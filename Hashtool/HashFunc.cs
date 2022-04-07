@@ -51,6 +51,27 @@ namespace Hashtool
         public byte[] CRC32Code { get; private set; } = new byte[4];
         private uint _CRC32Code = 0;
 
+        private void CalcModTable()
+        {
+            modTable = new uint[256];
+            for (int i = 0; i < 256; i++)
+            {
+                uint tmp = (uint)i;
+                for (int j = 0; j < 8; j++)
+                {
+                    if ((tmp & 1) == 1)
+                    { 
+                        tmp = (tmp >> 1) ^ 0xEDB88320; // 减法
+                    }
+                    else
+                    { 
+                        tmp >>= 1; 
+                    }
+                }
+                modTable[i] = tmp;
+            }
+        }
+
         public void Init()
         {
             _CRC32Code = 0xffffffffu;
@@ -67,8 +88,10 @@ namespace Hashtool
         public void Final()
         {
             _CRC32Code ^= 0xffffffffu;
-            CRC32Code = BitConverter.GetBytes(_CRC32Code);
-            Array.Reverse(CRC32Code);
+            CRC32Code[0] = (byte)((_CRC32Code >> 24) & 0xff);
+            CRC32Code[1] = (byte)((_CRC32Code >> 16) & 0xff);
+            CRC32Code[2] = (byte)((_CRC32Code >>  8) & 0xff);
+            CRC32Code[3] = (byte)( _CRC32Code        & 0xff);
         }
     }
 }

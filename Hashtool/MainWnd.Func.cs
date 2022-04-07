@@ -585,12 +585,15 @@ namespace Hashtool
             return Byte2Str(crc32Obj.CRC32Code);
         }
 
-        public static string Byte2Str(byte[] b)
+        public static string Byte2Str(byte[] b, bool useUpperCase=true)
         {
             StringBuilder str = new StringBuilder();
+            string fmt = useUpperCase ? "{0:X2}" : "{0:x2}";
 
             for (int i = 0; i < b.Length; i++)
-                str.AppendFormat("{0:X2}", b[i]);
+            {
+                str.AppendFormat(fmt, b[i]); 
+            }
 
             return str.ToString();
         }
