@@ -542,8 +542,8 @@ namespace Hashtool
 
         private string TaskCalcCRC32(FileInfo fileInfo, CancellationToken ct)
         {
-            var crc32Obj = new MD5CryptoServiceProvider();
-            crc32Obj.Initialize();
+            var crc32Obj = new CRC32();
+            crc32Obj.Init();
 
             var bufferSize = 10240;
             var buffer = new byte[bufferSize];
@@ -559,7 +559,7 @@ namespace Hashtool
                         break;
                     }
 
-                    crc32Obj.TransformBlock(buffer, 0, readCount, buffer, 0);
+                    crc32Obj.Update(buffer, readCount);
 
                     // 更新进度条
                     lock (pbValueLock)
@@ -581,8 +581,8 @@ namespace Hashtool
                 }
             }
 
-            crc32Obj.TransformFinalBlock(buffer, 0, readCount);
-            return Byte2Str(crc32Obj.Hash);
+            crc32Obj.Final();
+            return Byte2Str(crc32Obj.CRC32Code);
         }
 
         public static string Byte2Str(byte[] b)
