@@ -223,11 +223,10 @@ namespace Hashtool
                     {
                         // 开启子 Tasks 计算每一种算法的哈希
                         var tasks = new Task<string>[algCount];
-                        for (int i = 0; i < algCount; i++)
+                        foreach (var i in Enumerable.Range(0, algCount)) // 必须使用 foreach, 否则匿名函数传值有问题
                         {
-                            var hashObj = algEnabledList[i].HashObj; // 不要在匿名函数里用下标
                             tasks[i] = new Task<string>(
-                                () => TaskCompHash(fInfo, hashObj, calcTaskCclTokenSrc.Token),
+                                () => TaskCompHash(fInfo, algEnabledList[i].HashObj, calcTaskCclTokenSrc.Token),
                                 calcTaskCclTokenSrc.Token,
                                 TaskCreationOptions.LongRunning
                             );
