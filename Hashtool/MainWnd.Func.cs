@@ -295,27 +295,32 @@ namespace Hashtool
             var readCount = 0;
             if (fileInfo.Length > 0)
             {
-                var fin = fileInfo.OpenRead();
-
-                while ((readCount = fin.Read(buffer, 0, bufferSize)) > 0)
+                try
                 {
-                    if (ct.IsCancellationRequested)
+                    var fin = fileInfo.OpenRead();
+                    while ((readCount = fin.Read(buffer, 0, bufferSize)) > 0)
                     {
-                        break;
-                    }
+                        if (ct.IsCancellationRequested)
+                        {
+                            return "Cancelled.";
+                        }
 
-                    hashObj.TransformBlock(buffer, 0, readCount, buffer, 0);
+                        hashObj.TransformBlock(buffer, 0, readCount, buffer, 0);
 
-                    // 更新进度信息
-                    double completed = (double)readCount / fileInfo.Length;
-                    lock (pbValueLock)
-                    {
-                        pbValueSingle += completed;
-                        pbValueTotal += completed;
+                        // 更新进度信息
+                        double completed = (double)readCount / fileInfo.Length;
+                        lock (pbValueLock)
+                        {
+                            pbValueSingle += completed;
+                            pbValueTotal += completed;
+                        }
                     }
+                    fin.Close();
                 }
-
-                fin.Close();
+                catch (IOException e)
+                {
+                    return $"IOException: {e.Message}.";
+                }
             }
             else
             {
@@ -326,7 +331,7 @@ namespace Hashtool
                 }
             }
 
-            hashObj.TransformFinalBlock(buffer, 0, readCount);
+            hashObj.TransformFinalBlock(buffer, 0, 0);
             return Byte2HexStr(hashObj.Hash);
         }
 
