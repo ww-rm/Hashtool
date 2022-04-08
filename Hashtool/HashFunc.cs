@@ -107,19 +107,199 @@ namespace Hashtool
 
     public class SM3 : HashAlgorithm
     {
+        private uint[] sm3HashValue = new uint[8];
+        private ulong msgLength = 0; // 数据最大长度为 2 的 64 次方 bit
+
+        private byte[] dataBuffer = new byte[64];
+        private int dataBufferLen = 0;
+
+        private uint[] wordsBuffer1 = new uint[68];
+        private uint[] wordsBuffer2 = new uint[64];
+
+        private uint T(int j)
+        {
+            return j <= 15 ? 0x79cc4519u : 0x7a879d8au;
+        }
+
+        private uint FF(int j, uint X, uint Y, uint Z)
+        {
+            return j <= 15 ? (X ^ Y ^ Z) : ((X & Y) | (X & Z) | (Y & Z));
+        }
+
+        private uint GG(int j, uint X, uint Y, uint Z)
+        {
+            return j <= 15 ? (X ^ Y ^ Z) : ((X & Y) | (~X & Z));
+        }
+
+        private uint ROL(uint X, int count)
+        {
+            return (X << count) | (X >> (32 - count));
+        }
+
+        private uint P0(uint X)
+        {
+            return X ^ ROL(X, 9) ^ ROL(X, 17);
+        }
+
+        private uint P1(uint X)
+        {
+            return X ^ ROL(X, 15) ^ ROL(X, 23);
+        }
+
+        /// <summary>
+        /// 扩展函数, 把 512 bit 的 16 个字扩展成 132 个字
+        /// </summary>
+        /// <param name="data">16 个 32 bit 字</param>
+        private void Expand(uint[] data)
+        {
+            Array.Copy(data, 0, wordsBuffer1, 0, 16);
+            for (int j = 16; j < 68; j++)
+            {
+                wordsBuffer1[j] = P1(wordsBuffer1[j - 16] ^ wordsBuffer1[j - 9] ^ ROL(wordsBuffer1[j - 3], 15))
+                                ^ ROL(wordsBuffer1[j - 13], 7)
+                                ^ wordsBuffer1[j - 6];
+            }
+            for (int j = 0; j < 64; j++)
+            {
+                wordsBuffer2[j] = wordsBuffer1[j] ^ wordsBuffer1[j + 4];
+            }
+        }
+
+        /// <summary>
+        /// 压缩函数, 每次接收 16 个 32 bit 字的数据进行压缩, 会更新 sm3HashValue 的值
+        /// </summary>
+        /// <param name="data"></param>
+        private void CF(uint[] data)
+        {
+            Expand(data);
+
+            uint[] ABCDEFGH = new uint[8];
+            uint SS1, SS2, TT1, TT2;
+            sm3HashValue.CopyTo(ABCDEFGH, 0);
+
+            for (int j = 0; j < 64; j++)
+            {
+                SS1 = ROL(ROL(ABCDEFGH[0], 12) + ABCDEFGH[4] + ROL(T(j), j), 7);
+                SS2 = SS1 ^ ROL(ABCDEFGH[0], 12);
+                TT1 = FF(j, ABCDEFGH[0], ABCDEFGH[1], ABCDEFGH[2]) + ABCDEFGH[3] + SS2 + wordsBuffer2[j];
+                TT2 = GG(j, ABCDEFGH[4], ABCDEFGH[5], ABCDEFGH[6]) + ABCDEFGH[7] + SS1 + wordsBuffer1[j];
+                ABCDEFGH[3] = ABCDEFGH[2];
+                ABCDEFGH[2] = ROL(ABCDEFGH[1], 9);
+                ABCDEFGH[1] = ABCDEFGH[0];
+                ABCDEFGH[0] = TT1;
+                ABCDEFGH[7] = ABCDEFGH[6];
+                ABCDEFGH[6] = ROL(ABCDEFGH[5], 19);
+                ABCDEFGH[5] = ABCDEFGH[4];
+                ABCDEFGH[4] = P0(TT2);
+            }
+
+            for (int i = 0; i < 8; i++)
+            {
+                sm3HashValue[i] = ABCDEFGH[i] ^ sm3HashValue[i];
+            }
+        }
+
+        /// <summary>
+        /// 把 64 字节转换成 16 个 32 bit 字
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="dataStart"></param>
+        /// <returns></returns>
+        private uint[] Bytes2Words(byte[] data, int dataStart = 0)
+        {
+            uint[] words = new uint[16];
+            for (int i = 0; i < 16; i++)
+            {
+                words[i] = ((uint)data[dataStart + i * 4    ] << 24)
+                         | ((uint)data[dataStart + i * 4 + 1] << 16)
+                         | ((uint)data[dataStart + i * 4 + 2] <<  8)
+                         | ((uint)data[dataStart + i * 4 + 3]      );
+            }
+            return words;
+        }
+
         public override void Initialize()
         {
-            throw new NotImplementedException();
+            // 初始向量
+            sm3HashValue[0] = 0x7380166fu;
+            sm3HashValue[1] = 0x4914b2b9u;
+            sm3HashValue[2] = 0x172442d7u;
+            sm3HashValue[3] = 0xda8a0600u;
+            sm3HashValue[4] = 0xa96f30bcu;
+            sm3HashValue[5] = 0x163138aau;
+            sm3HashValue[6] = 0xe38dee4du;
+            sm3HashValue[7] = 0xb0fb0e4eu;
+
+            msgLength = 0;
+
+            dataBufferLen = 0;
         }
 
         protected override void HashCore(byte[] array, int ibStart, int cbSize)
         {
-            throw new NotImplementedException();
+            if (cbSize + dataBufferLen >= 64)
+            {
+                int readPos = ibStart;
+
+                // 处理上一次缓冲区剩余的数据
+                Array.Copy(array, 0, dataBuffer, dataBufferLen, 64 - dataBufferLen);
+                readPos += 64 - dataBufferLen;
+                CF(Bytes2Words(dataBuffer));
+
+                // 按每 64 个字节来读取数据
+                for (; readPos + 64 < ibStart + cbSize; readPos += 64)
+                {
+                    CF(Bytes2Words(array, ibStart + readPos));
+                }
+
+                // 保留本次剩余数据
+                Array.Copy(array, ibStart + readPos, dataBuffer, 0, cbSize - (readPos - ibStart));
+                dataBufferLen = cbSize - (readPos - ibStart);
+            }
+            else
+            {
+                // 向缓冲区增加保留数据
+                Array.Copy(array, ibStart, dataBuffer, dataBufferLen, cbSize);
+                dataBufferLen += cbSize;
+            }
+
+            if (msgLength > (msgLength + (ulong)cbSize))
+            {
+                throw new OverflowException("Data too long.");
+            }
+            msgLength += (ulong)cbSize;
         }
 
         protected override byte[] HashFinal()
         {
-            throw new NotImplementedException();
+            byte[] hashValue = new byte[32];
+
+            // 尾部填充
+            dataBuffer[dataBufferLen] = 0x80;
+            for (int i = dataBufferLen + 1; i < 64; i++)
+            {
+                dataBuffer[i] = 0x00;
+            }
+
+            ulong msgBitLen = msgLength * 8;
+            dataBuffer[56] = (byte)(msgBitLen >> 56);
+            dataBuffer[57] = (byte)(msgBitLen >> 48);
+            dataBuffer[58] = (byte)(msgBitLen >> 40);
+            dataBuffer[59] = (byte)(msgBitLen >> 32);
+            dataBuffer[60] = (byte)(msgBitLen >> 24);
+            dataBuffer[61] = (byte)(msgBitLen >> 16);
+            dataBuffer[62] = (byte)(msgBitLen >>  8);
+            dataBuffer[63] = (byte)(msgBitLen      );
+            CF(Bytes2Words(dataBuffer));
+
+            for (int i = 0; i < 8; i++)
+            {
+                hashValue[i * 4    ] = (byte)(sm3HashValue[i] >> 24);
+                hashValue[i * 4 + 1] = (byte)(sm3HashValue[i] >> 16);
+                hashValue[i * 4 + 2] = (byte)(sm3HashValue[i] >>  8);
+                hashValue[i * 4 + 3] = (byte)(sm3HashValue[i]      );
+            }
+            return hashValue;
         }
     }
 

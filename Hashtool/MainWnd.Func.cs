@@ -75,27 +75,27 @@ namespace Hashtool
         private List<HashAlgHandler> GetAlgEnabledList()
         {
             var result = new List<HashAlgHandler>();
-            if (cbMD5.CheckState == CheckState.Checked)
+            if (cbMD5.Checked)
             {
                 result.Add(new HashAlgHandler(HashAlgType.MD5));
             }
-            if (cbSHA1.CheckState == CheckState.Checked)
+            if (cbSHA1.Checked)
             {
                 result.Add(new HashAlgHandler(HashAlgType.SHA1));
             }
-            if (cbSHA256.CheckState == CheckState.Checked)
+            if (cbSHA256.Checked)
             {
                 result.Add(new HashAlgHandler(HashAlgType.SHA256));
             }
-            if (cbSHA3.CheckState == CheckState.Checked)
+            if (cbSHA3.Checked)
             {
                 result.Add(new HashAlgHandler(HashAlgType.SHA3));
             }
-            if (cbSM3.CheckState == CheckState.Checked)
+            if (cbSM3.Checked)
             {
                 result.Add(new HashAlgHandler(HashAlgType.SM3));
             }
-            if (cbCRC32.CheckState == CheckState.Checked)
+            if (cbCRC32.Checked)
             {
                 result.Add(new HashAlgHandler(HashAlgType.CRC32));
             }

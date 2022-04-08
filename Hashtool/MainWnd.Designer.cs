@@ -71,8 +71,6 @@ namespace Hashtool
             // cbMD5
             // 
             this.cbMD5.AutoSize = true;
-            this.cbMD5.Checked = true;
-            this.cbMD5.CheckState = System.Windows.Forms.CheckState.Checked;
             this.cbMD5.Location = new System.Drawing.Point(0, 0);
             this.cbMD5.Name = "cbMD5";
             this.cbMD5.Size = new System.Drawing.Size(66, 26);
@@ -83,8 +81,6 @@ namespace Hashtool
             // cbSHA1
             // 
             this.cbSHA1.AutoSize = true;
-            this.cbSHA1.Checked = true;
-            this.cbSHA1.CheckState = System.Windows.Forms.CheckState.Checked;
             this.cbSHA1.Location = new System.Drawing.Point(0, 34);
             this.cbSHA1.Name = "cbSHA1";
             this.cbSHA1.Size = new System.Drawing.Size(76, 26);
@@ -115,6 +111,8 @@ namespace Hashtool
             // cbSM3
             // 
             this.cbSM3.AutoSize = true;
+            this.cbSM3.Checked = true;
+            this.cbSM3.CheckState = System.Windows.Forms.CheckState.Checked;
             this.cbSM3.Location = new System.Drawing.Point(0, 136);
             this.cbSM3.Name = "cbSM3";
             this.cbSM3.Size = new System.Drawing.Size(66, 26);
@@ -125,8 +123,6 @@ namespace Hashtool
             // cbCRC32
             // 
             this.cbCRC32.AutoSize = true;
-            this.cbCRC32.Checked = true;
-            this.cbCRC32.CheckState = System.Windows.Forms.CheckState.Checked;
             this.cbCRC32.Location = new System.Drawing.Point(0, 171);
             this.cbCRC32.Name = "cbCRC32";
             this.cbCRC32.Size = new System.Drawing.Size(86, 26);
