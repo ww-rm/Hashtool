@@ -8,27 +8,122 @@ using System.IO;
 
 namespace Hashtool
 {
-    public enum HashAlgType 
+    public enum HashAlgType
     {
-        MD5 = 0, 
-        SHA1 = 1, 
-        SHA256 = 2, 
-        SHA3 = 3, 
-        SM3 = 4, 
-        CRC32 = 5
+        MD5, SHA1, SHA256, SHA512, SHA3, SM3, CRC32
     }
 
-    public class SHA3       
+    public class HashAlgHandler
     {
+        /// <summary>
+        /// 获取哈希算法类型
+        /// </summary>
+        public HashAlgType AlgType { get; }
+
+        /// <summary>
+        /// 获得哈希算法字符串名称
+        /// </summary>
+        public string Name
+        {
+            get
+            {
+                switch (AlgType)
+                {
+                    case HashAlgType.MD5:
+                        return "MD5";
+                    case HashAlgType.SHA1:
+                        return "SHA1";
+                    case HashAlgType.SHA256:
+                        return "SHA256";
+                    case HashAlgType.SHA512:
+                        return "SHA512";
+                    case HashAlgType.SHA3:
+                        return "SHA3";
+                    case HashAlgType.SM3:
+                        return "SM3";
+                    case HashAlgType.CRC32:
+                        return "CRC32";
+                    default:
+                        throw new ArgumentException("Unknown HashAlgType.");
+                }
+            }
+        }
+
+        /// <summary>
+        /// 获得哈希算法计算对象
+        /// </summary>
+        public HashAlgorithm HashObj
+        {
+            get
+            {
+                switch (AlgType)
+                {
+                    case HashAlgType.MD5:
+                        return MD5.Create();
+                    case HashAlgType.SHA1:
+                        return SHA1.Create();
+                    case HashAlgType.SHA256:
+                        return SHA256.Create();
+                    case HashAlgType.SHA512:
+                        return SHA512.Create();
+                    case HashAlgType.SHA3:
+                        return new SHA3();
+                    case HashAlgType.SM3:
+                        return new SM3();
+                    case HashAlgType.CRC32:
+                        return new CRC32();
+                    default:
+                        throw new ArgumentException("Unknown HashAlgType.");
+                }
+            }
+        }
+
+        /// <summary>
+        /// 创建指定类型哈希算法
+        /// </summary>
+        /// <param name="algType"></param>
+        public HashAlgHandler(HashAlgType algType) => this.AlgType = algType;
 
     }
 
-    public class SM3
-    {
 
+    public class SHA3 : HashAlgorithm
+    {
+        public override void Initialize()
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override void HashCore(byte[] array, int ibStart, int cbSize)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override byte[] HashFinal()
+        {
+            throw new NotImplementedException();
+        }
     }
 
-    public class CRC32
+    public class SM3 : HashAlgorithm
+    {
+        public override void Initialize()
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override void HashCore(byte[] array, int ibStart, int cbSize)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override byte[] HashFinal()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class CRC32 : HashAlgorithm
     {
         private uint[] modTable = new uint[256] {
             0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f, 0xe963a535, 0x9e6495a3, 0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988, 0x09b64c2b, 0x7eb17cbd, 0xe7b82d07, 0x90bf1d91,
@@ -48,8 +143,7 @@ namespace Hashtool
             0xa00ae278, 0xd70dd2ee, 0x4e048354, 0x3903b3c2, 0xa7672661, 0xd06016f7, 0x4969474d, 0x3e6e77db, 0xaed16a4a, 0xd9d65adc, 0x40df0b66, 0x37d83bf0, 0xa9bcae53, 0xdebb9ec5, 0x47b2cf7f, 0x30b5ffe9,
             0xbdbdf21c, 0xcabac28a, 0x53b39330, 0x24b4a3a6, 0xbad03605, 0xcdd70693, 0x54de5729, 0x23d967bf, 0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94, 0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
         };
-        public byte[] CRC32Code { get; private set; } = new byte[4];
-        private uint _CRC32Code = 0;
+        private uint crc32Code = 0;
 
         private void CalcModTable()
         {
@@ -60,38 +154,40 @@ namespace Hashtool
                 for (int j = 0; j < 8; j++)
                 {
                     if ((tmp & 1) == 1)
-                    { 
+                    {
                         tmp = (tmp >> 1) ^ 0xEDB88320; // 减法
                     }
                     else
-                    { 
-                        tmp >>= 1; 
+                    {
+                        tmp >>= 1;
                     }
                 }
                 modTable[i] = tmp;
             }
         }
 
-        public void Init()
+        public override void Initialize()
         {
-            _CRC32Code = 0xffffffffu;
+            crc32Code = 0xffffffffu;
         }
 
-        public void Update(byte[] data, int length)
+        protected override void HashCore(byte[] array, int ibStart, int cbSize)
         {
-            for (int i = 0; i < length; i++)
+            for (int i = ibStart; i < cbSize; i++)
             {
-                _CRC32Code = (_CRC32Code >> 8) ^ modTable[(_CRC32Code & 0xffu) ^ data[i]];
+                crc32Code = (crc32Code >> 8) ^ modTable[(crc32Code & 0xffu) ^ array[i]];
             }
         }
 
-        public void Final()
+        protected override byte[] HashFinal()
         {
-            _CRC32Code ^= 0xffffffffu;
-            CRC32Code[0] = (byte)((_CRC32Code >> 24) & 0xff);
-            CRC32Code[1] = (byte)((_CRC32Code >> 16) & 0xff);
-            CRC32Code[2] = (byte)((_CRC32Code >>  8) & 0xff);
-            CRC32Code[3] = (byte)( _CRC32Code        & 0xff);
+            byte[] hashValue = new byte[4];
+            crc32Code ^= 0xffffffffu;
+            hashValue[0] = (byte)((crc32Code >> 24) & 0xff);
+            hashValue[1] = (byte)((crc32Code >> 16) & 0xff);
+            hashValue[2] = (byte)((crc32Code >> 8) & 0xff);
+            hashValue[3] = (byte)(crc32Code & 0xff);
+            return hashValue;
         }
     }
 }

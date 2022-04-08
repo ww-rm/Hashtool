@@ -7,13 +7,14 @@ using System.Threading;
 using System.Windows.Forms;
 using System.IO;
 using System.Security.Cryptography;
+using System.Diagnostics;
 
 namespace Hashtool
 {
     public partial class MainWnd
     {
         private Task calcTask = null;
-        private CancellationTokenSource calcTaskCclToken = null;
+        private CancellationTokenSource calcTaskCclTokenSrc = null;
 
         private object pbValueLock = new object(); // 用于下面两个值和进度条更新的锁
         private double pbValueSingle = 0; // 当前文件计算进度
@@ -26,7 +27,7 @@ namespace Hashtool
         {
             if (this.InvokeRequired)
             {
-                // Invoke 可以防止死锁
+                // BeginInvoke 可以防止死锁
                 this.algPanel.BeginInvoke(new Action(() => this.algPanel.Enabled = false));
                 this.btnOpen.BeginInvoke(new Action(() => this.btnOpen.Enabled = false));
                 this.btnClear.BeginInvoke(new Action(() => this.btnClear.Enabled = false));
@@ -71,58 +72,60 @@ namespace Hashtool
             }
         }
 
-        private List<HashAlgType> GetAlgEnabledList()
+        private List<HashAlgHandler> GetAlgEnabledList()
         {
-            var result = new List<HashAlgType>();
+            var result = new List<HashAlgHandler>();
             if (cbMD5.CheckState == CheckState.Checked)
             {
-                result.Add(HashAlgType.MD5);
+                result.Add(new HashAlgHandler(HashAlgType.MD5));
             }
             if (cbSHA1.CheckState == CheckState.Checked)
             {
-                result.Add(HashAlgType.SHA1);
+                result.Add(new HashAlgHandler(HashAlgType.SHA1));
             }
             if (cbSHA256.CheckState == CheckState.Checked)
             {
-                result.Add(HashAlgType.SHA256);
+                result.Add(new HashAlgHandler(HashAlgType.SHA256));
             }
             if (cbSHA3.CheckState == CheckState.Checked)
             {
-                result.Add(HashAlgType.SHA3);
+                result.Add(new HashAlgHandler(HashAlgType.SHA3));
             }
             if (cbSM3.CheckState == CheckState.Checked)
             {
-                result.Add(HashAlgType.SM3);
+                result.Add(new HashAlgHandler(HashAlgType.SM3));
             }
             if (cbCRC32.CheckState == CheckState.Checked)
             {
-                result.Add(HashAlgType.CRC32);
+                result.Add(new HashAlgHandler(HashAlgType.CRC32));
             }
             return result;
         }
 
         private void UpdateProgressBarValue()
         {
-            int singleVal = pbSingle.Maximum;
-            int totalVal = pbTotal.Maximum;
+            double singleVal = pbSingle.Maximum;
+            double totalVal = pbTotal.Maximum;
             lock (pbValueLock)
             {
-                if (fileCount <= 0)
+                singleVal = pbValueSingle;
+                totalVal = pbValueTotal;
+            }
+            if (fileCount <= 0)
+            {
+                singleVal = totalVal = 0;
+            }
+            else
+            {
+                if (algCount <= 0)
                 {
-                    singleVal = totalVal = 0;
+                    singleVal = Math.Round(singleVal * pbSingle.Maximum);
+                    totalVal = (int)Math.Round(totalVal / fileCount * pbTotal.Maximum);
                 }
                 else
                 {
-                    if (algCount <= 0)
-                    {
-                        singleVal = (int)Math.Round(pbValueSingle * pbSingle.Maximum);
-                        totalVal = (int)Math.Round(pbValueTotal / fileCount * pbTotal.Maximum);
-                    }
-                    else
-                    {
-                        singleVal = (int)Math.Round(pbValueSingle / algCount * pbSingle.Maximum);
-                        totalVal = (int)Math.Round(pbValueTotal / algCount / fileCount * pbTotal.Maximum);
-                    }
+                    singleVal = Math.Round(singleVal / algCount * pbSingle.Maximum);
+                    totalVal = Math.Round(totalVal / algCount / fileCount * pbTotal.Maximum);
                 }
             }
 
@@ -131,25 +134,25 @@ namespace Hashtool
             totalVal = Math.Min(Math.Max(pbTotal.Minimum, totalVal), pbTotal.Maximum);
             if (this.InvokeRequired)
             {
-                pbSingle.BeginInvoke(new Action(() => pbSingle.Value = singleVal));
-                pbSingle.BeginInvoke(new Action(() => pbTotal.Value = totalVal));
+                pbSingle.BeginInvoke(new Action(() => pbSingle.Value = (int)singleVal));
+                pbSingle.BeginInvoke(new Action(() => pbTotal.Value = (int)totalVal));
             }
             else
             {
-                pbSingle.Value = singleVal;
-                pbTotal.Value = totalVal;
+                pbSingle.Value = (int)singleVal;
+                pbTotal.Value = (int)totalVal;
             }
         }
 
         /// <summary>
         /// 开始计算哈希的过程
         /// </summary>
-        private void BeginCalc(string[] paths)
+        private void BeginCompute(string[] paths)
         {
-            calcTaskCclToken = new CancellationTokenSource();
+            calcTaskCclTokenSrc = new CancellationTokenSource();
             calcTask = new Task(
-                () => TaskCalcHash(paths, calcTaskCclToken.Token),
-                calcTaskCclToken.Token,
+                () => TaskCompute(paths, calcTaskCclTokenSrc.Token),
+                calcTaskCclTokenSrc.Token,
                 TaskCreationOptions.LongRunning
             );
             calcTask.Start();
@@ -160,7 +163,7 @@ namespace Hashtool
         /// </summary>
         /// <param name="paths"></param>
         /// <param name="ct"></param>
-        private void TaskCalcHash(string[] paths, CancellationToken ct)
+        private void TaskCompute(string[] paths, CancellationToken ct)
         {
             // 改变窗体界面显示
             SetRunState();
@@ -174,139 +177,108 @@ namespace Hashtool
                     fileInfos.Add(new FileInfo(p));
                 }
             }
+
             fileCount = fileInfos.Count;
-
-            // 获取要计算的哈希算法
-            var algEnabledList = GetAlgEnabledList();
-            algCount = algEnabledList.Count;
-
-            // 进度条清零
-            lock (pbValueLock)
+            if (fileCount > 0)
             {
-                pbValueSingle = 0;
-                pbValueTotal = 0;
-            }
-            UpdateProgressBarValue();
-
-            var tasks = new Task<string>[algCount];
-            foreach (var fInfo in fileInfos)
-            {
-                // 清空单个文件进度条
+                // 进度条清零
                 lock (pbValueLock)
                 {
                     pbValueSingle = 0;
+                    pbValueTotal = 0;
                 }
+                UpdateProgressBarValue();
 
-                // 开启子 Tasks 计算每一种算法的哈希
-                for (int i = 0; i < algCount; i++)
+                // 获取要计算的哈希算法
+                var algEnabledList = GetAlgEnabledList();
+                algCount = algEnabledList.Count;
+                foreach (var fInfo in fileInfos)
                 {
-                    switch (algEnabledList[i])
-                    {
-                        case HashAlgType.MD5:
-                            tasks[i] = new Task<string>(() => TaskCalcMD5(fInfo, calcTaskCclToken.Token), calcTaskCclToken.Token, TaskCreationOptions.LongRunning);
-                            tasks[i].Start();
-                            break;
-                        case HashAlgType.SHA1:
-                            tasks[i] = new Task<string>(() => TaskCalcSHA1(fInfo, calcTaskCclToken.Token), calcTaskCclToken.Token, TaskCreationOptions.LongRunning);
-                            tasks[i].Start();
-                            break;
-                        case HashAlgType.SHA256:
-                            tasks[i] = new Task<string>(() => TaskCalcSHA256(fInfo, calcTaskCclToken.Token), calcTaskCclToken.Token, TaskCreationOptions.LongRunning);
-                            tasks[i].Start();
-                            break;
-                        case HashAlgType.SHA3:
-                            tasks[i] = new Task<string>(() => TaskCalcSHA3(fInfo, calcTaskCclToken.Token), calcTaskCclToken.Token, TaskCreationOptions.LongRunning);
-                            tasks[i].Start();
-                            break;
-                        case HashAlgType.SM3:
-                            tasks[i] = new Task<string>(() => TaskCalcSM3(fInfo, calcTaskCclToken.Token), calcTaskCclToken.Token, TaskCreationOptions.LongRunning);
-                            tasks[i].Start();
-                            break;
-                        case HashAlgType.CRC32:
-                            tasks[i] = new Task<string>(() => TaskCalcCRC32(fInfo, calcTaskCclToken.Token), calcTaskCclToken.Token, TaskCreationOptions.LongRunning);
-                            tasks[i].Start();
-                            break;
-                        default:
-                            throw new Exception($"Unknown HashAlgType: {algEnabledList[i]}");
-                    }
-                }
-
-                // 轮询监视
-                while (true)
-                {
-                    // 更新进度条
-                    UpdateProgressBarValue();
-
-                    // 检查是否被取消
                     if (ct.IsCancellationRequested)
                     {
                         break;
                     }
-                    // 检查子任务是否都完成
-                    else
-                    {
-                        if (tasks.All(e => e.IsCompleted))
-                        {
-                            // 格式化输出当前文件的计算结果
-                            var result = "";
-                            result += $"路径: {fInfo.FullName}{Environment.NewLine}";
-                            result += $"大小: {fInfo.Length} 字节{Environment.NewLine}";
-                            result += $"最后修改时间: {fInfo.LastWriteTime}{Environment.NewLine}";
-                            for (int i = 0; i < algCount; i++)
-                            {
-                                switch (algEnabledList[i])
-                                {
-                                    case HashAlgType.MD5:
-                                        result += $"MD5: {tasks[i].Result}{Environment.NewLine}";
-                                        break;
-                                    case HashAlgType.SHA1:
-                                        result += $"SHA1: {tasks[i].Result}{Environment.NewLine}";
-                                        break;
-                                    case HashAlgType.SHA256:
-                                        result += $"SHA256: {tasks[i].Result}{Environment.NewLine}";
-                                        break;
-                                    case HashAlgType.SHA3:
-                                        result += $"SHA3: {tasks[i].Result}{Environment.NewLine}";
-                                        break;
-                                    case HashAlgType.SM3:
-                                        result += $"SM3: {tasks[i].Result}{Environment.NewLine}";
-                                        break;
-                                    case HashAlgType.CRC32:
-                                        result += $"CRC32: {tasks[i].Result}{Environment.NewLine}";
-                                        break;
-                                    default:
-                                        throw new Exception($"Unknown HashAlgType: {algEnabledList[i]}");
-                                }
-                            }
-                            textResult.Invoke(
-                                new Action(() => textResult.AppendText($"{result}{Environment.NewLine}"))
-                            );
-                            break; // 进入下一个文件的计算
-                        }
-                    }
 
-                    // 降低 CPU 负载
-                    Thread.Sleep(10);
-                }
-
-                // 处理无算法特殊情况, 直接加进度
-                if (algCount <= 0)
-                {
+                    // 清空单个文件进度条
                     lock (pbValueLock)
                     {
-                        pbValueSingle += 1;
-                        pbValueTotal += 1;
+                        pbValueSingle = 0;
                     }
-                }
+                    UpdateProgressBarValue();
 
-                // 更新进度条
-                UpdateProgressBarValue();
+                    // 输出结果
+                    var result = new StringBuilder();
 
-                // 检查是否被取消
-                if (calcTaskCclToken.IsCancellationRequested)
-                {
-                    // 中止后续计算工作
-                    break;
+                    // 添加文件基本信息
+                    result.Append($"路径: {fInfo.FullName}{Environment.NewLine}");
+                    result.Append($"大小: {fInfo.Length} 字节{Environment.NewLine}");
+                    result.Append($"修改时间: {fInfo.LastWriteTime}{Environment.NewLine}");
+
+                    if (ct.IsCancellationRequested)
+                    {
+                        break;
+                    }
+
+                    if (algCount > 0)
+                    {
+                        // 开启子 Tasks 计算每一种算法的哈希
+                        var tasks = new Task<string>[algCount];
+                        for (int i = 0; i < algCount; i++)
+                        {
+                            var hashObj = algEnabledList[i].HashObj; // 不要在匿名函数里用下标
+                            tasks[i] = new Task<string>(
+                                () => TaskCompHash(fInfo, hashObj, calcTaskCclTokenSrc.Token),
+                                calcTaskCclTokenSrc.Token,
+                                TaskCreationOptions.LongRunning
+                            );
+                            tasks[i].Start();
+                        }
+
+                        // 轮询监视
+                        while (true)
+                        {
+                            UpdateProgressBarValue();
+
+                            if (ct.IsCancellationRequested)
+                            {
+                                break;
+                            }
+
+                            // 检查子任务是否都完成
+                            if (tasks.All(e => e.IsCompleted))
+                            {
+                                for (int i = 0; i < algCount; i++)
+                                {
+                                    result.Append($"{algEnabledList[i].Name}: {tasks[i].Result}{Environment.NewLine}");
+                                }
+                                break; // 进入下一个文件的计算
+                            }
+
+                            // 降低 CPU 负载
+                            Thread.Sleep(10);
+                        }
+                    }
+                    else
+                    {
+                        // 更新进度条
+                        lock (pbValueLock)
+                        {
+                            pbValueSingle += 1;
+                            pbValueTotal += 1;
+                        }
+                        UpdateProgressBarValue();
+                    }
+
+                    if (ct.IsCancellationRequested)
+                    {
+                        break;
+                    }
+
+                    // 格式化输出当前文件的计算结果
+                    result.Append(Environment.NewLine);
+                    textResult.Invoke(new Action(() => textResult.AppendText(result.ToString())));
+
+                    UpdateProgressBarValue();
                 }
             }
 
@@ -314,11 +286,9 @@ namespace Hashtool
             SetStopState();
         }
 
-
-        private string TaskCalcMD5(FileInfo fileInfo, CancellationToken ct)
+        private string TaskCompHash(FileInfo fileInfo, HashAlgorithm hashObj, CancellationToken ct)
         {
-            var md5Obj = new MD5CryptoServiceProvider();
-            md5Obj.Initialize();
+            hashObj.Initialize();
 
             var bufferSize = 10240;
             var buffer = new byte[bufferSize];
@@ -334,12 +304,12 @@ namespace Hashtool
                         break;
                     }
 
-                    md5Obj.TransformBlock(buffer, 0, readCount, buffer, 0);
+                    hashObj.TransformBlock(buffer, 0, readCount, buffer, 0);
 
-                    // 更新进度条
+                    // 更新进度信息
+                    double completed = (double)readCount / fileInfo.Length;
                     lock (pbValueLock)
                     {
-                        double completed = (double)readCount / fileInfo.Length;
                         pbValueSingle += completed;
                         pbValueTotal += completed;
                     }
@@ -356,243 +326,18 @@ namespace Hashtool
                 }
             }
 
-            md5Obj.TransformFinalBlock(buffer, 0, readCount);
-            return Byte2Str(md5Obj.Hash);
+            hashObj.TransformFinalBlock(buffer, 0, readCount);
+            return Byte2HexStr(hashObj.Hash);
         }
 
-        private string TaskCalcSHA1(FileInfo fileInfo, CancellationToken ct)
-        {
-            var sha1Obj = new SHA1CryptoServiceProvider();
-            sha1Obj.Initialize();
-
-            var bufferSize = 10240;
-            var buffer = new byte[bufferSize];
-            var readCount = 0;
-            if (fileInfo.Length > 0)
-            {
-                var fin = fileInfo.OpenRead();
-
-                while ((readCount = fin.Read(buffer, 0, bufferSize)) > 0)
-                {
-                    if (ct.IsCancellationRequested)
-                    {
-                        break;
-                    }
-
-                    sha1Obj.TransformBlock(buffer, 0, readCount, buffer, 0);
-
-                    // 更新进度条
-                    lock (pbValueLock)
-                    {
-                        double completed = (double)readCount / fileInfo.Length;
-                        pbValueSingle += completed;
-                        pbValueTotal += completed;
-                    }
-                }
-
-                fin.Close();
-            }
-            else
-            {
-                lock (pbValueLock)
-                {
-                    pbValueSingle += 1;
-                    pbValueTotal += 1;
-                }
-            }
-
-            sha1Obj.TransformFinalBlock(buffer, 0, readCount);
-            return Byte2Str(sha1Obj.Hash);
-        }
-
-        private string TaskCalcSHA256(FileInfo fileInfo, CancellationToken ct)
-        {
-            var sha256Obj = new SHA256CryptoServiceProvider();
-            sha256Obj.Initialize();
-
-            var bufferSize = 10240;
-            var buffer = new byte[bufferSize];
-            var readCount = 0;
-            if (fileInfo.Length > 0)
-            {
-                var fin = fileInfo.OpenRead();
-
-                while ((readCount = fin.Read(buffer, 0, bufferSize)) > 0)
-                {
-                    if (ct.IsCancellationRequested)
-                    {
-                        break;
-                    }
-
-                    sha256Obj.TransformBlock(buffer, 0, readCount, buffer, 0);
-
-                    // 更新进度条
-                    lock (pbValueLock)
-                    {
-                        double completed = (double)readCount / fileInfo.Length;
-                        pbValueSingle += completed;
-                        pbValueTotal += completed;
-                    }
-                }
-
-                fin.Close();
-            }
-            else
-            {
-                lock (pbValueLock)
-                {
-                    pbValueSingle += 1;
-                    pbValueTotal += 1;
-                }
-            }
-
-            sha256Obj.TransformFinalBlock(buffer, 0, readCount);
-            return Byte2Str(sha256Obj.Hash);
-        }
-
-        private string TaskCalcSHA3(FileInfo fileInfo, CancellationToken ct)
-        {
-            var sha3Obj = new MD5CryptoServiceProvider();
-            sha3Obj.Initialize();
-
-            var bufferSize = 10240;
-            var buffer = new byte[bufferSize];
-            var readCount = 0;
-            if (fileInfo.Length > 0)
-            {
-                var fin = fileInfo.OpenRead();
-
-                while ((readCount = fin.Read(buffer, 0, bufferSize)) > 0)
-                {
-                    if (ct.IsCancellationRequested)
-                    {
-                        break;
-                    }
-
-                    sha3Obj.TransformBlock(buffer, 0, readCount, buffer, 0);
-
-                    // 更新进度条
-                    lock (pbValueLock)
-                    {
-                        double completed = (double)readCount / fileInfo.Length;
-                        pbValueSingle += completed;
-                        pbValueTotal += completed;
-                    }
-                }
-
-                fin.Close();
-            }
-            else
-            {
-                lock (pbValueLock)
-                {
-                    pbValueSingle += 1;
-                    pbValueTotal += 1;
-                }
-            }
-
-            sha3Obj.TransformFinalBlock(buffer, 0, readCount);
-            return Byte2Str(sha3Obj.Hash);
-        }
-
-        private string TaskCalcSM3(FileInfo fileInfo, CancellationToken ct)
-        {
-            var sm3Obj = new MD5CryptoServiceProvider();
-            sm3Obj.Initialize();
-
-            var bufferSize = 10240;
-            var buffer = new byte[bufferSize];
-            var readCount = 0;
-            if (fileInfo.Length > 0)
-            {
-                var fin = fileInfo.OpenRead();
-
-                while ((readCount = fin.Read(buffer, 0, bufferSize)) > 0)
-                {
-                    if (ct.IsCancellationRequested)
-                    {
-                        break;
-                    }
-
-                    sm3Obj.TransformBlock(buffer, 0, readCount, buffer, 0);
-
-                    // 更新进度条
-                    lock (pbValueLock)
-                    {
-                        double completed = (double)readCount / fileInfo.Length;
-                        pbValueSingle += completed;
-                        pbValueTotal += completed;
-                    }
-                }
-
-                fin.Close();
-            }
-            else
-            {
-                lock (pbValueLock)
-                {
-                    pbValueSingle += 1;
-                    pbValueTotal += 1;
-                }
-            }
-
-            sm3Obj.TransformFinalBlock(buffer, 0, readCount);
-            return Byte2Str(sm3Obj.Hash);
-        }
-
-        private string TaskCalcCRC32(FileInfo fileInfo, CancellationToken ct)
-        {
-            var crc32Obj = new CRC32();
-            crc32Obj.Init();
-
-            var bufferSize = 10240;
-            var buffer = new byte[bufferSize];
-            var readCount = 0;
-            if (fileInfo.Length > 0)
-            {
-                var fin = fileInfo.OpenRead();
-
-                while ((readCount = fin.Read(buffer, 0, bufferSize)) > 0)
-                {
-                    if (ct.IsCancellationRequested)
-                    {
-                        break;
-                    }
-
-                    crc32Obj.Update(buffer, readCount);
-
-                    // 更新进度条
-                    lock (pbValueLock)
-                    {
-                        double completed = (double)readCount / fileInfo.Length;
-                        pbValueSingle += completed;
-                        pbValueTotal += completed;
-                    }
-                }
-
-                fin.Close();
-            }
-            else
-            {
-                lock (pbValueLock)
-                {
-                    pbValueSingle += 1;
-                    pbValueTotal += 1;
-                }
-            }
-
-            crc32Obj.Final();
-            return Byte2Str(crc32Obj.CRC32Code);
-        }
-
-        public static string Byte2Str(byte[] b, bool useUpperCase=true)
+        public static string Byte2HexStr(byte[] b, bool useUpperCase = true)
         {
             StringBuilder str = new StringBuilder();
             string fmt = useUpperCase ? "{0:X2}" : "{0:x2}";
 
             for (int i = 0; i < b.Length; i++)
             {
-                str.AppendFormat(fmt, b[i]); 
+                str.AppendFormat(fmt, b[i]);
             }
 
             return str.ToString();

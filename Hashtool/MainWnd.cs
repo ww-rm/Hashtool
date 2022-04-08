@@ -34,7 +34,7 @@ namespace Hashtool
             };
             if (ofd.ShowDialog() == DialogResult.OK)
             {
-                BeginCalc(ofd.FileNames);
+                BeginCompute(ofd.FileNames);
             }
         }
 
@@ -67,21 +67,21 @@ namespace Hashtool
 
         private void btnStop_Click(object sender, EventArgs e)
         {
-            if (calcTask != null && calcTaskCclToken != null)
+            if (calcTask != null && calcTaskCclTokenSrc != null)
             {
-                calcTaskCclToken.Cancel();
+                calcTaskCclTokenSrc.Cancel();
                 calcTask.Wait();
 
-                calcTaskCclToken.Dispose(); //回收资源
+                calcTaskCclTokenSrc.Dispose(); //回收资源
                 calcTask = null;
-                calcTaskCclToken = null;
+                calcTaskCclTokenSrc = null;
             }
         }
 
         private void textResult_DragDrop(object sender, DragEventArgs e)
         {
             // 获取拖动时的文件列表
-            BeginCalc((string[])e.Data.GetData(DataFormats.FileDrop));
+            BeginCompute((string[])e.Data.GetData(DataFormats.FileDrop));
         }
 
         private void textResult_DragEnter(object sender, DragEventArgs e)
