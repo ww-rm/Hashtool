@@ -133,7 +133,9 @@ namespace Hashtool
 
         private uint ROL(uint X, int count)
         {
-            return (X << count) | (X >> (32 - count));
+            // C# 里移位运算符自动模数值长度, 所以不需要对 count 进行处理
+            // 当 count 为 0 或 32 时, 左右两半都没移位, 因此只能用或运算符进行连接
+            return (X << count) | (X >> (-count));
         }
 
         private uint P0(uint X)
