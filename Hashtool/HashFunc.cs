@@ -5,12 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Security.Cryptography;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace Hashtool
 {
     public enum HashAlgType
     {
-        MD5, SHA1, SHA256, SHA512, SHA3, SM3, CRC32
+        MD5, SHA1, SHA2_256, SHA2_512, SHA3_256, SM3, CRC32
     }
 
     public class HashAlgHandler
@@ -33,12 +34,12 @@ namespace Hashtool
                         return "MD5";
                     case HashAlgType.SHA1:
                         return "SHA1";
-                    case HashAlgType.SHA256:
-                        return "SHA256";
-                    case HashAlgType.SHA512:
-                        return "SHA512";
-                    case HashAlgType.SHA3:
-                        return "SHA3";
+                    case HashAlgType.SHA2_256:
+                        return "SHA2-256";
+                    case HashAlgType.SHA2_512:
+                        return "SHA2-512";
+                    case HashAlgType.SHA3_256:
+                        return "SHA3-256";
                     case HashAlgType.SM3:
                         return "SM3";
                     case HashAlgType.CRC32:
@@ -62,12 +63,12 @@ namespace Hashtool
                         return MD5.Create();
                     case HashAlgType.SHA1:
                         return SHA1.Create();
-                    case HashAlgType.SHA256:
+                    case HashAlgType.SHA2_256:
                         return SHA256.Create();
-                    case HashAlgType.SHA512:
+                    case HashAlgType.SHA2_512:
                         return SHA512.Create();
-                    case HashAlgType.SHA3:
-                        return new SHA3();
+                    case HashAlgType.SHA3_256:
+                        return new SHA3_256();
                     case HashAlgType.SM3:
                         return new SM3();
                     case HashAlgType.CRC32:
@@ -86,8 +87,7 @@ namespace Hashtool
 
     }
 
-
-    public class SHA3 : HashAlgorithm
+    public class SHA3_256 : HashAlgorithm
     {
         public override void Initialize()
         {
