@@ -83,13 +83,17 @@ namespace Hashtool
             {
                 result.Add(new HashAlgHandler(HashAlgType.SHA1));
             }
-            if (cbSHA256.Checked)
+            if (cbSHA2_256.Checked)
             {
-                result.Add(new HashAlgHandler(HashAlgType.SHA256));
+                result.Add(new HashAlgHandler(HashAlgType.SHA2_256));
             }
-            if (cbSHA3.Checked)
+            if (cbSHA2_512.Checked)
             {
-                result.Add(new HashAlgHandler(HashAlgType.SHA3));
+                result.Add(new HashAlgHandler(HashAlgType.SHA2_512));
+            }
+            if (cbSHA3_256.Checked)
+            {
+                result.Add(new HashAlgHandler(HashAlgType.SHA3_256));
             }
             if (cbSM3.Checked)
             {

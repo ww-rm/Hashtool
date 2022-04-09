@@ -33,11 +33,10 @@ namespace Hashtool
             this.textResult = new System.Windows.Forms.TextBox();
             this.cbMD5 = new System.Windows.Forms.CheckBox();
             this.cbSHA1 = new System.Windows.Forms.CheckBox();
-            this.cbSHA256 = new System.Windows.Forms.CheckBox();
-            this.cbSHA3 = new System.Windows.Forms.CheckBox();
+            this.cbSHA2_256 = new System.Windows.Forms.CheckBox();
+            this.cbSHA3_256 = new System.Windows.Forms.CheckBox();
             this.cbSM3 = new System.Windows.Forms.CheckBox();
             this.cbCRC32 = new System.Windows.Forms.CheckBox();
-            this.algPanel = new System.Windows.Forms.Panel();
             this.btnOpen = new System.Windows.Forms.Button();
             this.labelSingle = new System.Windows.Forms.Label();
             this.labelTotal = new System.Windows.Forms.Label();
@@ -48,8 +47,10 @@ namespace Hashtool
             this.btnStop = new System.Windows.Forms.Button();
             this.btnSave = new System.Windows.Forms.Button();
             this.pnlButton = new System.Windows.Forms.TableLayoutPanel();
-            this.algPanel.SuspendLayout();
+            this.cbSHA2_512 = new System.Windows.Forms.CheckBox();
+            this.algPanel = new System.Windows.Forms.TableLayoutPanel();
             this.pnlButton.SuspendLayout();
+            this.algPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // textResult
@@ -62,7 +63,7 @@ namespace Hashtool
             this.textResult.Name = "textResult";
             this.textResult.ReadOnly = true;
             this.textResult.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.textResult.Size = new System.Drawing.Size(654, 369);
+            this.textResult.Size = new System.Drawing.Size(707, 369);
             this.textResult.TabIndex = 0;
             this.textResult.WordWrap = false;
             this.textResult.DragDrop += new System.Windows.Forms.DragEventHandler(this.textResult_DragDrop);
@@ -71,9 +72,12 @@ namespace Hashtool
             // cbMD5
             // 
             this.cbMD5.AutoSize = true;
-            this.cbMD5.Location = new System.Drawing.Point(0, 0);
+            this.cbMD5.Checked = true;
+            this.cbMD5.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.cbMD5.Location = new System.Drawing.Point(1, 1);
+            this.cbMD5.Margin = new System.Windows.Forms.Padding(1);
             this.cbMD5.Name = "cbMD5";
-            this.cbMD5.Size = new System.Drawing.Size(66, 26);
+            this.cbMD5.Size = new System.Drawing.Size(79, 28);
             this.cbMD5.TabIndex = 0;
             this.cbMD5.Text = "MD5";
             this.cbMD5.UseVisualStyleBackColor = true;
@@ -81,41 +85,45 @@ namespace Hashtool
             // cbSHA1
             // 
             this.cbSHA1.AutoSize = true;
-            this.cbSHA1.Location = new System.Drawing.Point(0, 34);
+            this.cbSHA1.Checked = true;
+            this.cbSHA1.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.cbSHA1.Location = new System.Drawing.Point(1, 31);
+            this.cbSHA1.Margin = new System.Windows.Forms.Padding(1);
             this.cbSHA1.Name = "cbSHA1";
-            this.cbSHA1.Size = new System.Drawing.Size(76, 26);
+            this.cbSHA1.Size = new System.Drawing.Size(84, 28);
             this.cbSHA1.TabIndex = 1;
             this.cbSHA1.Text = "SHA1";
             this.cbSHA1.UseVisualStyleBackColor = true;
             // 
-            // cbSHA256
+            // cbSHA2_256
             // 
-            this.cbSHA256.AutoSize = true;
-            this.cbSHA256.Location = new System.Drawing.Point(0, 68);
-            this.cbSHA256.Name = "cbSHA256";
-            this.cbSHA256.Size = new System.Drawing.Size(96, 26);
-            this.cbSHA256.TabIndex = 2;
-            this.cbSHA256.Text = "SHA256";
-            this.cbSHA256.UseVisualStyleBackColor = true;
+            this.cbSHA2_256.AutoSize = true;
+            this.cbSHA2_256.Location = new System.Drawing.Point(1, 61);
+            this.cbSHA2_256.Margin = new System.Windows.Forms.Padding(1);
+            this.cbSHA2_256.Name = "cbSHA2_256";
+            this.cbSHA2_256.Size = new System.Drawing.Size(125, 28);
+            this.cbSHA2_256.TabIndex = 2;
+            this.cbSHA2_256.Text = "SHA2-256";
+            this.cbSHA2_256.UseVisualStyleBackColor = true;
             // 
-            // cbSHA3
+            // cbSHA3_256
             // 
-            this.cbSHA3.AutoSize = true;
-            this.cbSHA3.Location = new System.Drawing.Point(0, 102);
-            this.cbSHA3.Name = "cbSHA3";
-            this.cbSHA3.Size = new System.Drawing.Size(76, 26);
-            this.cbSHA3.TabIndex = 3;
-            this.cbSHA3.Text = "SHA3";
-            this.cbSHA3.UseVisualStyleBackColor = true;
+            this.cbSHA3_256.AutoSize = true;
+            this.cbSHA3_256.Location = new System.Drawing.Point(1, 121);
+            this.cbSHA3_256.Margin = new System.Windows.Forms.Padding(1);
+            this.cbSHA3_256.Name = "cbSHA3_256";
+            this.cbSHA3_256.Size = new System.Drawing.Size(125, 28);
+            this.cbSHA3_256.TabIndex = 3;
+            this.cbSHA3_256.Text = "SHA3-256";
+            this.cbSHA3_256.UseVisualStyleBackColor = true;
             // 
             // cbSM3
             // 
             this.cbSM3.AutoSize = true;
-            this.cbSM3.Checked = true;
-            this.cbSM3.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cbSM3.Location = new System.Drawing.Point(0, 136);
+            this.cbSM3.Location = new System.Drawing.Point(1, 151);
+            this.cbSM3.Margin = new System.Windows.Forms.Padding(1);
             this.cbSM3.Name = "cbSM3";
-            this.cbSM3.Size = new System.Drawing.Size(66, 26);
+            this.cbSM3.Size = new System.Drawing.Size(75, 28);
             this.cbSM3.TabIndex = 4;
             this.cbSM3.Text = "SM3";
             this.cbSM3.UseVisualStyleBackColor = true;
@@ -123,33 +131,22 @@ namespace Hashtool
             // cbCRC32
             // 
             this.cbCRC32.AutoSize = true;
-            this.cbCRC32.Location = new System.Drawing.Point(0, 171);
+            this.cbCRC32.Checked = true;
+            this.cbCRC32.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.cbCRC32.Location = new System.Drawing.Point(1, 181);
+            this.cbCRC32.Margin = new System.Windows.Forms.Padding(1);
             this.cbCRC32.Name = "cbCRC32";
-            this.cbCRC32.Size = new System.Drawing.Size(86, 26);
+            this.cbCRC32.Size = new System.Drawing.Size(94, 28);
             this.cbCRC32.TabIndex = 5;
             this.cbCRC32.Text = "CRC32";
             this.cbCRC32.UseVisualStyleBackColor = true;
-            // 
-            // algPanel
-            // 
-            this.algPanel.Controls.Add(this.cbCRC32);
-            this.algPanel.Controls.Add(this.cbSM3);
-            this.algPanel.Controls.Add(this.cbSHA3);
-            this.algPanel.Controls.Add(this.cbSHA256);
-            this.algPanel.Controls.Add(this.cbSHA1);
-            this.algPanel.Controls.Add(this.cbMD5);
-            this.algPanel.Font = new System.Drawing.Font("Consolas", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.algPanel.Location = new System.Drawing.Point(672, 12);
-            this.algPanel.Name = "algPanel";
-            this.algPanel.Size = new System.Drawing.Size(99, 369);
-            this.algPanel.TabIndex = 1;
             // 
             // btnOpen
             // 
             this.btnOpen.AutoSize = true;
             this.btnOpen.Location = new System.Drawing.Point(3, 3);
             this.btnOpen.Name = "btnOpen";
-            this.btnOpen.Size = new System.Drawing.Size(124, 34);
+            this.btnOpen.Size = new System.Drawing.Size(135, 34);
             this.btnOpen.TabIndex = 2;
             this.btnOpen.Text = "打开&(O)";
             this.btnOpen.UseVisualStyleBackColor = true;
@@ -179,7 +176,7 @@ namespace Hashtool
             this.pbSingle.MarqueeAnimationSpeed = 10;
             this.pbSingle.Maximum = 10000;
             this.pbSingle.Name = "pbSingle";
-            this.pbSingle.Size = new System.Drawing.Size(673, 26);
+            this.pbSingle.Size = new System.Drawing.Size(753, 26);
             this.pbSingle.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
             this.pbSingle.TabIndex = 5;
             // 
@@ -189,16 +186,16 @@ namespace Hashtool
             this.pbTotal.MarqueeAnimationSpeed = 10;
             this.pbTotal.Maximum = 10000;
             this.pbTotal.Name = "pbTotal";
-            this.pbTotal.Size = new System.Drawing.Size(673, 23);
+            this.pbTotal.Size = new System.Drawing.Size(753, 23);
             this.pbTotal.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
             this.pbTotal.TabIndex = 6;
             // 
             // btnClear
             // 
             this.btnClear.AutoSize = true;
-            this.btnClear.Location = new System.Drawing.Point(133, 3);
+            this.btnClear.Location = new System.Drawing.Point(144, 3);
             this.btnClear.Name = "btnClear";
-            this.btnClear.Size = new System.Drawing.Size(124, 34);
+            this.btnClear.Size = new System.Drawing.Size(135, 34);
             this.btnClear.TabIndex = 7;
             this.btnClear.Text = "清除&(L)";
             this.btnClear.UseVisualStyleBackColor = true;
@@ -207,9 +204,9 @@ namespace Hashtool
             // btnCopy
             // 
             this.btnCopy.AutoSize = true;
-            this.btnCopy.Location = new System.Drawing.Point(263, 3);
+            this.btnCopy.Location = new System.Drawing.Point(285, 3);
             this.btnCopy.Name = "btnCopy";
-            this.btnCopy.Size = new System.Drawing.Size(124, 34);
+            this.btnCopy.Size = new System.Drawing.Size(135, 34);
             this.btnCopy.TabIndex = 8;
             this.btnCopy.Text = "复制&(C)";
             this.btnCopy.UseVisualStyleBackColor = true;
@@ -218,9 +215,9 @@ namespace Hashtool
             // btnStop
             // 
             this.btnStop.AutoSize = true;
-            this.btnStop.Location = new System.Drawing.Point(523, 3);
+            this.btnStop.Location = new System.Drawing.Point(567, 3);
             this.btnStop.Name = "btnStop";
-            this.btnStop.Size = new System.Drawing.Size(126, 34);
+            this.btnStop.Size = new System.Drawing.Size(137, 34);
             this.btnStop.TabIndex = 9;
             this.btnStop.Text = "停止&(T)";
             this.btnStop.UseVisualStyleBackColor = true;
@@ -229,9 +226,9 @@ namespace Hashtool
             // btnSave
             // 
             this.btnSave.AutoSize = true;
-            this.btnSave.Location = new System.Drawing.Point(393, 3);
+            this.btnSave.Location = new System.Drawing.Point(426, 3);
             this.btnSave.Name = "btnSave";
-            this.btnSave.Size = new System.Drawing.Size(124, 34);
+            this.btnSave.Size = new System.Drawing.Size(135, 34);
             this.btnSave.TabIndex = 10;
             this.btnSave.Text = "保存&(S)";
             this.btnSave.UseVisualStyleBackColor = true;
@@ -254,19 +251,55 @@ namespace Hashtool
             this.pnlButton.Name = "pnlButton";
             this.pnlButton.RowCount = 1;
             this.pnlButton.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.pnlButton.Size = new System.Drawing.Size(654, 40);
+            this.pnlButton.Size = new System.Drawing.Size(707, 40);
             this.pnlButton.TabIndex = 11;
+            // 
+            // cbSHA2_512
+            // 
+            this.cbSHA2_512.AutoSize = true;
+            this.cbSHA2_512.Location = new System.Drawing.Point(1, 91);
+            this.cbSHA2_512.Margin = new System.Windows.Forms.Padding(1);
+            this.cbSHA2_512.Name = "cbSHA2_512";
+            this.cbSHA2_512.Size = new System.Drawing.Size(125, 28);
+            this.cbSHA2_512.TabIndex = 6;
+            this.cbSHA2_512.Text = "SHA2-512";
+            this.cbSHA2_512.UseVisualStyleBackColor = true;
+            // 
+            // algPanel
+            // 
+            this.algPanel.AutoSize = true;
+            this.algPanel.ColumnCount = 1;
+            this.algPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.algPanel.Controls.Add(this.cbMD5, 0, 0);
+            this.algPanel.Controls.Add(this.cbCRC32, 0, 6);
+            this.algPanel.Controls.Add(this.cbSHA2_512, 0, 3);
+            this.algPanel.Controls.Add(this.cbSM3, 0, 5);
+            this.algPanel.Controls.Add(this.cbSHA1, 0, 1);
+            this.algPanel.Controls.Add(this.cbSHA2_256, 0, 2);
+            this.algPanel.Controls.Add(this.cbSHA3_256, 0, 4);
+            this.algPanel.Location = new System.Drawing.Point(725, 12);
+            this.algPanel.Name = "algPanel";
+            this.algPanel.RowCount = 7;
+            this.algPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.algPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.algPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.algPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.algPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.algPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.algPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.algPanel.Size = new System.Drawing.Size(127, 210);
+            this.algPanel.TabIndex = 12;
             // 
             // MainWnd
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
-            this.ClientSize = new System.Drawing.Size(783, 494);
+            this.ClientSize = new System.Drawing.Size(864, 494);
+            this.Controls.Add(this.algPanel);
             this.Controls.Add(this.pnlButton);
             this.Controls.Add(this.pbTotal);
             this.Controls.Add(this.pbSingle);
             this.Controls.Add(this.labelTotal);
             this.Controls.Add(this.labelSingle);
-            this.Controls.Add(this.algPanel);
             this.Controls.Add(this.textResult);
             this.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
@@ -276,10 +309,10 @@ namespace Hashtool
             this.Name = "MainWnd";
             this.Text = "Hashtool";
             this.Load += new System.EventHandler(this.MainForm_Load);
-            this.algPanel.ResumeLayout(false);
-            this.algPanel.PerformLayout();
             this.pnlButton.ResumeLayout(false);
             this.pnlButton.PerformLayout();
+            this.algPanel.ResumeLayout(false);
+            this.algPanel.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -290,11 +323,10 @@ namespace Hashtool
         private System.Windows.Forms.TextBox textResult;
         private System.Windows.Forms.CheckBox cbMD5;
         private System.Windows.Forms.CheckBox cbSHA1;
-        private System.Windows.Forms.CheckBox cbSHA256;
-        private System.Windows.Forms.CheckBox cbSHA3;
+        private System.Windows.Forms.CheckBox cbSHA2_256;
+        private System.Windows.Forms.CheckBox cbSHA3_256;
         private System.Windows.Forms.CheckBox cbSM3;
         private System.Windows.Forms.CheckBox cbCRC32;
-        private System.Windows.Forms.Panel algPanel;
         private System.Windows.Forms.Button btnOpen;
         private System.Windows.Forms.Label labelSingle;
         private System.Windows.Forms.Label labelTotal;
@@ -305,6 +337,8 @@ namespace Hashtool
         private System.Windows.Forms.Button btnStop;
         private System.Windows.Forms.Button btnSave;
         private System.Windows.Forms.TableLayoutPanel pnlButton;
+        private System.Windows.Forms.CheckBox cbSHA2_512;
+        private System.Windows.Forms.TableLayoutPanel algPanel;
     }
 }
 
