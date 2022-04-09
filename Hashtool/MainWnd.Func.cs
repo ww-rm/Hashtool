@@ -33,6 +33,7 @@ namespace Hashtool
                 this.btnSave.BeginInvoke(new Action(() => this.btnSave.Enabled = false));
                 this.btnStop.BeginInvoke(new Action(() => this.btnStop.Enabled = true));
                 this.textResult.BeginInvoke(new Action(() => this.textResult.AllowDrop = false));
+                this.panelSetting.BeginInvoke(new Action(() => this.panelSetting.Enabled = false));
             }
             else
             {
@@ -43,6 +44,7 @@ namespace Hashtool
                 this.btnSave.Enabled = false;
                 this.btnStop.Enabled = true;
                 this.textResult.AllowDrop = false;
+                this.panelSetting.Enabled = false;
             }
         }
 
@@ -57,6 +59,7 @@ namespace Hashtool
                 this.btnSave.BeginInvoke(new Action(() => this.btnSave.Enabled = true));
                 this.btnStop.BeginInvoke(new Action(() => this.btnStop.Enabled = false));
                 this.textResult.BeginInvoke(new Action(() => this.textResult.AllowDrop = true));
+                this.panelSetting.BeginInvoke(new Action(() => this.panelSetting.Enabled = true));
             }
             else
             {
@@ -67,39 +70,40 @@ namespace Hashtool
                 this.btnSave.Enabled = true;
                 this.btnStop.Enabled = false;
                 this.textResult.AllowDrop = true;
+                this.panelSetting.Enabled = true;
             }
         }
 
-        private List<HashAlgHandler> GetAlgEnabledList()
+        private List<HashAlgType> GetAlgEnabledList()
         {
-            var result = new List<HashAlgHandler>();
+            var result = new List<HashAlgType>();
             if (cbMD5.Checked)
             {
-                result.Add(new HashAlgHandler(HashAlgType.MD5));
+                result.Add(HashAlgType.MD5);
             }
             if (cbSHA1.Checked)
             {
-                result.Add(new HashAlgHandler(HashAlgType.SHA1));
+                result.Add(HashAlgType.SHA1);
             }
             if (cbSHA2_256.Checked)
             {
-                result.Add(new HashAlgHandler(HashAlgType.SHA2_256));
+                result.Add(HashAlgType.SHA2_256);
             }
             if (cbSHA2_512.Checked)
             {
-                result.Add(new HashAlgHandler(HashAlgType.SHA2_512));
+                result.Add(HashAlgType.SHA2_512);
             }
             if (cbSHA3_256.Checked)
             {
-                result.Add(new HashAlgHandler(HashAlgType.SHA3_256));
+                result.Add(HashAlgType.SHA3_256);
             }
             if (cbSM3.Checked)
             {
-                result.Add(new HashAlgHandler(HashAlgType.SM3));
+                result.Add(HashAlgType.SM3);
             }
             if (cbCRC32.Checked)
             {
-                result.Add(new HashAlgHandler(HashAlgType.CRC32));
+                result.Add(HashAlgType.CRC32);
             }
             return result;
         }
@@ -223,40 +227,13 @@ namespace Hashtool
 
                     if (algCount > 0)
                     {
-                        // 开启子 Tasks 计算每一种算法的哈希
-                        var tasks = new Task<string>[algCount];
-                        foreach (var i in Enumerable.Range(0, algCount)) // 必须使用 foreach, 否则匿名函数传值有问题
+                        if (cbUseMultiThread.Checked)
                         {
-                            tasks[i] = new Task<string>(
-                                () => TaskCompHash(fInfo, algEnabledList[i].HashObj, calcTaskCclTokenSrc.Token),
-                                calcTaskCclTokenSrc.Token,
-                                TaskCreationOptions.LongRunning
-                            );
-                            tasks[i].Start();
+                            ComputeWithMultiTask(algEnabledList, fInfo, result, ct);
                         }
-
-                        // 轮询监视
-                        while (true)
+                        else
                         {
-                            UpdateProgressBarValue();
-
-                            if (ct.IsCancellationRequested)
-                            {
-                                break;
-                            }
-
-                            // 检查子任务是否都完成
-                            if (tasks.All(e => e.IsCompleted))
-                            {
-                                for (int i = 0; i < algCount; i++)
-                                {
-                                    result.Append($"{algEnabledList[i].Name}: {tasks[i].Result}{Environment.NewLine}");
-                                }
-                                break; // 进入下一个文件的计算
-                            }
-
-                            // 降低 CPU 负载
-                            Thread.Sleep(10);
+                            ComputeWithOneTask(algEnabledList, fInfo, result, ct);
                         }
                     }
                     else
@@ -287,8 +264,88 @@ namespace Hashtool
             SetStopState();
         }
 
-        private string TaskCompHash(FileInfo fileInfo, HashAlgorithm hashObj, CancellationToken ct)
+        private void ComputeWithOneTask(List<HashAlgType> algEnabledList, FileInfo fInfo, StringBuilder result, CancellationToken ct)
         {
+            Task<string> task;
+            foreach (var i in Enumerable.Range(0, algCount)) // 必须使用 foreach, 否则匿名函数传值有问题
+            {
+                task = new Task<string>(
+                    () => TaskCompHash(fInfo, algEnabledList[i], calcTaskCclTokenSrc.Token),
+                    calcTaskCclTokenSrc.Token,
+                    TaskCreationOptions.LongRunning
+                );
+                task.Start();
+
+                // 轮询监视
+                while (true)
+                {
+                    UpdateProgressBarValue();
+
+                    if (ct.IsCancellationRequested)
+                    {
+                        break;
+                    }
+
+                    // 检查子任务是否完成
+                    if (task.IsCompleted)
+                    {
+                        result.Append($"{HashAlgHandler.GetName(algEnabledList[i])}: {task.Result}{Environment.NewLine}");
+                        break;
+                    }
+
+                    // 防止 UI 卡顿
+                    Thread.Sleep(10);
+                }
+
+                if (ct.IsCancellationRequested)
+                {
+                    break;
+                }
+            }
+        }
+
+        private void ComputeWithMultiTask(List<HashAlgType> algEnabledList, FileInfo fInfo, StringBuilder result, CancellationToken ct)
+        {
+            // 开启子 Tasks 计算每一种算法的哈希
+            var tasks = new Task<string>[algCount];
+            foreach (var i in Enumerable.Range(0, algCount)) // 必须使用 foreach, 否则匿名函数传值有问题
+            {
+                tasks[i] = new Task<string>(
+                    () => TaskCompHash(fInfo, algEnabledList[i], calcTaskCclTokenSrc.Token),
+                    calcTaskCclTokenSrc.Token,
+                    TaskCreationOptions.LongRunning
+                );
+                tasks[i].Start();
+            }
+
+            // 轮询监视
+            while (true)
+            {
+                UpdateProgressBarValue();
+
+                if (ct.IsCancellationRequested)
+                {
+                    break;
+                }
+
+                // 检查子任务是否都完成
+                if (tasks.All(e => e.IsCompleted))
+                {
+                    for (int i = 0; i < algCount; i++)
+                    {
+                        result.Append($"{HashAlgHandler.GetName(algEnabledList[i])}: {tasks[i].Result}{Environment.NewLine}");
+                    }
+                    break; // 进入下一个文件的计算
+                }
+
+                // 防止 UI 卡顿
+                Thread.Sleep(10);
+            }
+        }
+
+        private string TaskCompHash(FileInfo fileInfo, HashAlgType algType, CancellationToken ct)
+        {
+            var hashObj = HashAlgHandler.GetHashObj(algType);
             hashObj.Initialize();
 
             var bufferSize = 10240;
@@ -333,10 +390,10 @@ namespace Hashtool
             }
 
             hashObj.TransformFinalBlock(buffer, 0, 0);
-            return Byte2HexStr(hashObj.Hash);
+            return Byte2HexStr(hashObj.Hash, cbUpperCase.Checked);
         }
 
-        public static string Byte2HexStr(byte[] b, bool useUpperCase = true)
+        public static string Byte2HexStr(byte[] b, bool useUpperCase)
         {
             StringBuilder str = new StringBuilder();
             string fmt = useUpperCase ? "{0:X2}" : "{0:x2}";

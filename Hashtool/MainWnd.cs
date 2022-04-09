@@ -96,5 +96,10 @@ namespace Hashtool
                 e.Effect = DragDropEffects.None;
             }
         }
+
+        private void btnAbout_Click(object sender, EventArgs e)
+        {
+            
+        }
     }
 }

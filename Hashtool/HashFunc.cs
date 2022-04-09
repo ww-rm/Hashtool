@@ -14,77 +14,59 @@ namespace Hashtool
         MD5, SHA1, SHA2_256, SHA2_512, SHA3_256, SM3, CRC32
     }
 
-    public class HashAlgHandler
+    public static class HashAlgHandler
     {
-        /// <summary>
-        /// 获取哈希算法类型
-        /// </summary>
-        public HashAlgType AlgType { get; }
-
         /// <summary>
         /// 获得哈希算法字符串名称
         /// </summary>
-        public string Name
+        public static string GetName(HashAlgType algType)
         {
-            get
+            switch (algType)
             {
-                switch (AlgType)
-                {
-                    case HashAlgType.MD5:
-                        return "MD5";
-                    case HashAlgType.SHA1:
-                        return "SHA1";
-                    case HashAlgType.SHA2_256:
-                        return "SHA2-256";
-                    case HashAlgType.SHA2_512:
-                        return "SHA2-512";
-                    case HashAlgType.SHA3_256:
-                        return "SHA3-256";
-                    case HashAlgType.SM3:
-                        return "SM3";
-                    case HashAlgType.CRC32:
-                        return "CRC32";
-                    default:
-                        throw new ArgumentException("Unknown HashAlgType.");
-                }
+                case HashAlgType.MD5:
+                    return "MD5";
+                case HashAlgType.SHA1:
+                    return "SHA1";
+                case HashAlgType.SHA2_256:
+                    return "SHA2-256";
+                case HashAlgType.SHA2_512:
+                    return "SHA2-512";
+                case HashAlgType.SHA3_256:
+                    return "SHA3-256";
+                case HashAlgType.SM3:
+                    return "SM3";
+                case HashAlgType.CRC32:
+                    return "CRC32";
+                default:
+                    throw new ArgumentException("Unknown HashAlgType.");
             }
         }
 
         /// <summary>
         /// 获得哈希算法计算对象
         /// </summary>
-        public HashAlgorithm HashObj
+        public static HashAlgorithm GetHashObj(HashAlgType algType)
         {
-            get
+            switch (algType)
             {
-                switch (AlgType)
-                {
-                    case HashAlgType.MD5:
-                        return MD5.Create();
-                    case HashAlgType.SHA1:
-                        return SHA1.Create();
-                    case HashAlgType.SHA2_256:
-                        return SHA256.Create();
-                    case HashAlgType.SHA2_512:
-                        return SHA512.Create();
-                    case HashAlgType.SHA3_256:
-                        return new SHA3_256();
-                    case HashAlgType.SM3:
-                        return new SM3();
-                    case HashAlgType.CRC32:
-                        return new CRC32();
-                    default:
-                        throw new ArgumentException("Unknown HashAlgType.");
-                }
+                case HashAlgType.MD5:
+                    return MD5.Create();
+                case HashAlgType.SHA1:
+                    return SHA1.Create();
+                case HashAlgType.SHA2_256:
+                    return SHA256.Create();
+                case HashAlgType.SHA2_512:
+                    return SHA512.Create();
+                case HashAlgType.SHA3_256:
+                    return new SHA3_256();
+                case HashAlgType.SM3:
+                    return new SM3();
+                case HashAlgType.CRC32:
+                    return new CRC32();
+                default:
+                    throw new ArgumentException("Unknown HashAlgType.");
             }
         }
-
-        /// <summary>
-        /// 创建指定类型哈希算法
-        /// </summary>
-        /// <param name="algType"></param>
-        public HashAlgHandler(HashAlgType algType) => this.AlgType = algType;
-
     }
 
     public class SHA3_256 : HashAlgorithm
