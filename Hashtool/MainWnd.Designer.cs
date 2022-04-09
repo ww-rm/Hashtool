@@ -62,7 +62,7 @@ namespace Hashtool
             this.textResult.Name = "textResult";
             this.textResult.ReadOnly = true;
             this.textResult.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.textResult.Size = new System.Drawing.Size(599, 369);
+            this.textResult.Size = new System.Drawing.Size(654, 369);
             this.textResult.TabIndex = 0;
             this.textResult.WordWrap = false;
             this.textResult.DragDrop += new System.Windows.Forms.DragEventHandler(this.textResult_DragDrop);
@@ -139,7 +139,7 @@ namespace Hashtool
             this.algPanel.Controls.Add(this.cbSHA1);
             this.algPanel.Controls.Add(this.cbMD5);
             this.algPanel.Font = new System.Drawing.Font("Consolas", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.algPanel.Location = new System.Drawing.Point(617, 12);
+            this.algPanel.Location = new System.Drawing.Point(672, 12);
             this.algPanel.Name = "algPanel";
             this.algPanel.Size = new System.Drawing.Size(99, 369);
             this.algPanel.TabIndex = 1;
@@ -149,7 +149,7 @@ namespace Hashtool
             this.btnOpen.AutoSize = true;
             this.btnOpen.Location = new System.Drawing.Point(3, 3);
             this.btnOpen.Name = "btnOpen";
-            this.btnOpen.Size = new System.Drawing.Size(134, 34);
+            this.btnOpen.Size = new System.Drawing.Size(124, 34);
             this.btnOpen.TabIndex = 2;
             this.btnOpen.Text = "打开&(O)";
             this.btnOpen.UseVisualStyleBackColor = true;
@@ -175,10 +175,11 @@ namespace Hashtool
             // 
             // pbSingle
             // 
-            this.pbSingle.Location = new System.Drawing.Point(98, 433);
+            this.pbSingle.Location = new System.Drawing.Point(98, 430);
             this.pbSingle.MarqueeAnimationSpeed = 10;
+            this.pbSingle.Maximum = 10000;
             this.pbSingle.Name = "pbSingle";
-            this.pbSingle.Size = new System.Drawing.Size(615, 23);
+            this.pbSingle.Size = new System.Drawing.Size(673, 26);
             this.pbSingle.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
             this.pbSingle.TabIndex = 5;
             // 
@@ -186,17 +187,18 @@ namespace Hashtool
             // 
             this.pbTotal.Location = new System.Drawing.Point(98, 459);
             this.pbTotal.MarqueeAnimationSpeed = 10;
+            this.pbTotal.Maximum = 10000;
             this.pbTotal.Name = "pbTotal";
-            this.pbTotal.Size = new System.Drawing.Size(615, 23);
+            this.pbTotal.Size = new System.Drawing.Size(673, 23);
             this.pbTotal.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
             this.pbTotal.TabIndex = 6;
             // 
             // btnClear
             // 
             this.btnClear.AutoSize = true;
-            this.btnClear.Location = new System.Drawing.Point(143, 3);
+            this.btnClear.Location = new System.Drawing.Point(133, 3);
             this.btnClear.Name = "btnClear";
-            this.btnClear.Size = new System.Drawing.Size(134, 34);
+            this.btnClear.Size = new System.Drawing.Size(124, 34);
             this.btnClear.TabIndex = 7;
             this.btnClear.Text = "清除&(L)";
             this.btnClear.UseVisualStyleBackColor = true;
@@ -205,9 +207,9 @@ namespace Hashtool
             // btnCopy
             // 
             this.btnCopy.AutoSize = true;
-            this.btnCopy.Location = new System.Drawing.Point(283, 3);
+            this.btnCopy.Location = new System.Drawing.Point(263, 3);
             this.btnCopy.Name = "btnCopy";
-            this.btnCopy.Size = new System.Drawing.Size(134, 34);
+            this.btnCopy.Size = new System.Drawing.Size(124, 34);
             this.btnCopy.TabIndex = 8;
             this.btnCopy.Text = "复制&(C)";
             this.btnCopy.UseVisualStyleBackColor = true;
@@ -216,9 +218,9 @@ namespace Hashtool
             // btnStop
             // 
             this.btnStop.AutoSize = true;
-            this.btnStop.Location = new System.Drawing.Point(563, 3);
+            this.btnStop.Location = new System.Drawing.Point(523, 3);
             this.btnStop.Name = "btnStop";
-            this.btnStop.Size = new System.Drawing.Size(138, 34);
+            this.btnStop.Size = new System.Drawing.Size(126, 34);
             this.btnStop.TabIndex = 9;
             this.btnStop.Text = "停止&(T)";
             this.btnStop.UseVisualStyleBackColor = true;
@@ -227,9 +229,9 @@ namespace Hashtool
             // btnSave
             // 
             this.btnSave.AutoSize = true;
-            this.btnSave.Location = new System.Drawing.Point(423, 3);
+            this.btnSave.Location = new System.Drawing.Point(393, 3);
             this.btnSave.Name = "btnSave";
-            this.btnSave.Size = new System.Drawing.Size(134, 34);
+            this.btnSave.Size = new System.Drawing.Size(124, 34);
             this.btnSave.TabIndex = 10;
             this.btnSave.Text = "保存&(S)";
             this.btnSave.UseVisualStyleBackColor = true;
@@ -252,13 +254,13 @@ namespace Hashtool
             this.pnlButton.Name = "pnlButton";
             this.pnlButton.RowCount = 1;
             this.pnlButton.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.pnlButton.Size = new System.Drawing.Size(704, 40);
+            this.pnlButton.Size = new System.Drawing.Size(654, 40);
             this.pnlButton.TabIndex = 11;
             // 
             // MainWnd
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
-            this.ClientSize = new System.Drawing.Size(728, 494);
+            this.ClientSize = new System.Drawing.Size(783, 494);
             this.Controls.Add(this.pnlButton);
             this.Controls.Add(this.pbTotal);
             this.Controls.Add(this.pbSingle);

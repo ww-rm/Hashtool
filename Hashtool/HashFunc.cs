@@ -175,30 +175,40 @@ namespace Hashtool
         {
             Expand(data);
 
-            uint[] ABCDEFGH = new uint[8];
+            uint A = sm3HashValue[0];
+            uint B = sm3HashValue[1];
+            uint C = sm3HashValue[2];
+            uint D = sm3HashValue[3];
+            uint E = sm3HashValue[4];
+            uint F = sm3HashValue[5];
+            uint G = sm3HashValue[6];
+            uint H = sm3HashValue[7];
             uint SS1, SS2, TT1, TT2;
-            sm3HashValue.CopyTo(ABCDEFGH, 0);
 
             for (int j = 0; j < 64; j++)
             {
-                SS1 = ROL(ROL(ABCDEFGH[0], 12) + ABCDEFGH[4] + ROL(T(j), j), 7);
-                SS2 = SS1 ^ ROL(ABCDEFGH[0], 12);
-                TT1 = FF(j, ABCDEFGH[0], ABCDEFGH[1], ABCDEFGH[2]) + ABCDEFGH[3] + SS2 + wordsBuffer2[j];
-                TT2 = GG(j, ABCDEFGH[4], ABCDEFGH[5], ABCDEFGH[6]) + ABCDEFGH[7] + SS1 + wordsBuffer1[j];
-                ABCDEFGH[3] = ABCDEFGH[2];
-                ABCDEFGH[2] = ROL(ABCDEFGH[1], 9);
-                ABCDEFGH[1] = ABCDEFGH[0];
-                ABCDEFGH[0] = TT1;
-                ABCDEFGH[7] = ABCDEFGH[6];
-                ABCDEFGH[6] = ROL(ABCDEFGH[5], 19);
-                ABCDEFGH[5] = ABCDEFGH[4];
-                ABCDEFGH[4] = P0(TT2);
+                SS1 = ROL(ROL(A, 12) + E + ROL(T(j), j), 7);
+                SS2 = SS1 ^ ROL(A, 12);
+                TT1 = FF(j, A, B, C) + D + SS2 + wordsBuffer2[j];
+                TT2 = GG(j, E, F, G) + H + SS1 + wordsBuffer1[j];
+                D = C;
+                C = ROL(B, 9);
+                B = A;
+                A = TT1;
+                H = G;
+                G = ROL(F, 19);
+                F = E;
+                E = P0(TT2);
             }
 
-            for (int i = 0; i < 8; i++)
-            {
-                sm3HashValue[i] = ABCDEFGH[i] ^ sm3HashValue[i];
-            }
+            sm3HashValue[0] = A ^ sm3HashValue[0];
+            sm3HashValue[1] = B ^ sm3HashValue[1];
+            sm3HashValue[2] = C ^ sm3HashValue[2];
+            sm3HashValue[3] = D ^ sm3HashValue[3];
+            sm3HashValue[4] = E ^ sm3HashValue[4];
+            sm3HashValue[5] = F ^ sm3HashValue[5];
+            sm3HashValue[6] = G ^ sm3HashValue[6];
+            sm3HashValue[7] = H ^ sm3HashValue[7];
         }
 
         /// <summary>
@@ -265,7 +275,7 @@ namespace Hashtool
                 dataBufferLen += cbSize;
             }
 
-            if (msgLength > (msgLength + (ulong)cbSize))
+            if (msgLength * 8 > (msgLength + (ulong)cbSize) * 8)
             {
                 throw new OverflowException("Data too long.");
             }
@@ -278,11 +288,10 @@ namespace Hashtool
 
             // 尾部填充
             dataBuffer[dataBufferLen] = 0x80;
-            for (int i = dataBufferLen + 1; i < 64; i++)
+            for (int i = dataBufferLen + 1; i < 56; i++)
             {
                 dataBuffer[i] = 0x00;
             }
-
             ulong msgBitLen = msgLength * 8;
             dataBuffer[56] = (byte)(msgBitLen >> 56);
             dataBuffer[57] = (byte)(msgBitLen >> 48);
@@ -292,6 +301,7 @@ namespace Hashtool
             dataBuffer[61] = (byte)(msgBitLen >> 16);
             dataBuffer[62] = (byte)(msgBitLen >>  8);
             dataBuffer[63] = (byte)(msgBitLen      );
+
             CF(Bytes2Words(dataBuffer));
 
             for (int i = 0; i < 8; i++)
