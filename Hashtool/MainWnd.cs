@@ -21,9 +21,6 @@ namespace Hashtool
 
         private void MainForm_Load(object sender, EventArgs e)
         {            
-            // Dpi Awareness
-
-
             // 初始化界面
             SetStopState();
         }
@@ -70,14 +67,14 @@ namespace Hashtool
 
         private void btnStop_Click(object sender, EventArgs e)
         {
-            if (calcTask != null && calcTaskCclTokenSrc != null)
+            if (compTask != null && compTaskCclTokenSrc != null)
             {
-                calcTaskCclTokenSrc.Cancel();
-                calcTask.Wait();
+                compTaskCclTokenSrc.Cancel();
+                compTask.Wait();
 
-                calcTaskCclTokenSrc.Dispose(); //回收资源
-                calcTask = null;
-                calcTaskCclTokenSrc = null;
+                compTaskCclTokenSrc.Dispose(); //回收资源
+                compTask = null;
+                compTaskCclTokenSrc = null;
             }
         }
 
@@ -102,7 +99,8 @@ namespace Hashtool
 
         private void btnAbout_Click(object sender, EventArgs e)
         {
-            
+            var aboutBox = new AboutBox();
+            aboutBox.ShowDialog();
         }
     }
 }

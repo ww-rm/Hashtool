@@ -89,6 +89,17 @@ namespace Hashtool
 
     public class SM3 : HashAlgorithm
     {
+        private uint[] ROL_T_table = new uint[64] {
+            0x79cc4519, 0xf3988a32, 0xe7311465, 0xce6228cb, 0x9cc45197, 0x3988a32f, 0x7311465e, 0xe6228cbc,
+            0xcc451979, 0x988a32f3, 0x311465e7, 0x6228cbce, 0xc451979c, 0x88a32f39, 0x11465e73, 0x228cbce6,
+            0x9d8a7a87, 0x3b14f50f, 0x7629ea1e, 0xec53d43c, 0xd8a7a879, 0xb14f50f3, 0x629ea1e7, 0xc53d43ce,
+            0x8a7a879d, 0x14f50f3b, 0x29ea1e76, 0x53d43cec, 0xa7a879d8, 0x4f50f3b1, 0x9ea1e762, 0x3d43cec5,
+            0x7a879d8a, 0xf50f3b14, 0xea1e7629, 0xd43cec53, 0xa879d8a7, 0x50f3b14f, 0xa1e7629e, 0x43cec53d,
+            0x879d8a7a, 0x0f3b14f5, 0x1e7629ea, 0x3cec53d4, 0x79d8a7a8, 0xf3b14f50, 0xe7629ea1, 0xcec53d43,
+            0x9d8a7a87, 0x3b14f50f, 0x7629ea1e, 0xec53d43c, 0xd8a7a879, 0xb14f50f3, 0x629ea1e7, 0xc53d43ce,
+            0x8a7a879d, 0x14f50f3b, 0x29ea1e76, 0x53d43cec, 0xa7a879d8, 0x4f50f3b1, 0x9ea1e762, 0x3d43cec5,
+        };
+
         private uint[] sm3HashValue = new uint[8];
         private ulong msgLength = 0; // 数据最大长度为 2 的 64 次方 bit
 
@@ -97,6 +108,17 @@ namespace Hashtool
 
         private uint[] wordsBuffer1 = new uint[68];
         private uint[] wordsBuffer2 = new uint[64];
+
+        /// <summary>
+        /// 预计算 ROL(T(j), j)
+        /// </summary>
+        private void PreCompROLTtable()
+        {
+            for (int j = 0; j < 64; j++)
+            {
+                ROL_T_table[j] = ROL(T(j), j);
+            }
+        }
 
         private uint T(int j)
         {
@@ -169,7 +191,8 @@ namespace Hashtool
 
             for (int j = 0; j < 64; j++)
             {
-                SS1 = ROL(ROL(A, 12) + E + ROL(T(j), j), 7);
+                //SS1 = ROL(ROL(A, 12) + E + ROL(T(j), j), 7);
+                SS1 = ROL(ROL(A, 12) + E + ROL_T_table[j], 7);
                 SS2 = SS1 ^ ROL(A, 12);
                 TT1 = FF(j, A, B, C) + D + SS2 + wordsBuffer2[j];
                 TT2 = GG(j, E, F, G) + H + SS1 + wordsBuffer1[j];
@@ -214,6 +237,7 @@ namespace Hashtool
 
         public override void Initialize()
         {
+            //PreCompROLTtable();
             // 初始向量
             sm3HashValue[0] = 0x7380166fu;
             sm3HashValue[1] = 0x4914b2b9u;
@@ -319,7 +343,10 @@ namespace Hashtool
         };
         private uint crc32Code = 0;
 
-        private void CalcModTable()
+        /// <summary>
+        /// 预计算每个字节模多项式余数
+        /// </summary>
+        private void PreCompModTable()
         {
             modTable = new uint[256];
             for (int i = 0; i < 256; i++)
@@ -342,6 +369,7 @@ namespace Hashtool
 
         public override void Initialize()
         {
+            //PreCompModTable();
             crc32Code = 0xffffffffu;
         }
 

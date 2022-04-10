@@ -11,8 +11,8 @@ namespace Hashtool
 {
     public partial class MainWnd
     {
-        private Task calcTask = null;
-        private CancellationTokenSource calcTaskCclTokenSrc = null;
+        private Task compTask = null;
+        private CancellationTokenSource compTaskCclTokenSrc = null;
 
         private object pbValueLock = new object(); // 用于下面两个值和进度条更新的锁
         private double pbValueSingle = 0; // 当前文件计算进度
@@ -155,13 +155,13 @@ namespace Hashtool
         /// </summary>
         private void BeginCompute(string[] paths)
         {
-            calcTaskCclTokenSrc = new CancellationTokenSource();
-            calcTask = new Task(
-                () => TaskCompute(paths, calcTaskCclTokenSrc.Token),
-                calcTaskCclTokenSrc.Token,
+            compTaskCclTokenSrc = new CancellationTokenSource();
+            compTask = new Task(
+                () => TaskCompute(paths, compTaskCclTokenSrc.Token),
+                compTaskCclTokenSrc.Token,
                 TaskCreationOptions.LongRunning
             );
-            calcTask.Start();
+            compTask.Start();
         }
 
         /// <summary>
@@ -270,8 +270,8 @@ namespace Hashtool
             foreach (var i in Enumerable.Range(0, algCount)) // 必须使用 foreach, 否则匿名函数传值有问题
             {
                 task = new Task<string>(
-                    () => TaskCompHash(fInfo, algEnabledList[i], calcTaskCclTokenSrc.Token),
-                    calcTaskCclTokenSrc.Token,
+                    () => TaskCompHash(fInfo, algEnabledList[i], compTaskCclTokenSrc.Token),
+                    compTaskCclTokenSrc.Token,
                     TaskCreationOptions.LongRunning
                 );
                 task.Start();
@@ -311,8 +311,8 @@ namespace Hashtool
             foreach (var i in Enumerable.Range(0, algCount)) // 必须使用 foreach, 否则匿名函数传值有问题
             {
                 tasks[i] = new Task<string>(
-                    () => TaskCompHash(fInfo, algEnabledList[i], calcTaskCclTokenSrc.Token),
-                    calcTaskCclTokenSrc.Token,
+                    () => TaskCompHash(fInfo, algEnabledList[i], compTaskCclTokenSrc.Token),
+                    compTaskCclTokenSrc.Token,
                     TaskCreationOptions.LongRunning
                 );
                 tasks[i].Start();
