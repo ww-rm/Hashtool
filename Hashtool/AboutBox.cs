@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Diagnostics;
 
 namespace Hashtool
 {
@@ -95,5 +96,17 @@ namespace Hashtool
             }
         }
         #endregion
+
+        private void AboutBox_Load(object sender, EventArgs e)
+        {
+            labelIntro.Text = Program.IntroStr;
+            linkLabelSrcCodeURL.Text = Program.SrcCodeURL;
+        }
+
+        private void linkLabelCodeAddr_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            linkLabelSrcCodeURL.LinkVisited = true;
+            Process.Start(Program.SrcCodeURL);
+        }
     }
 }
