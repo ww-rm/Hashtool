@@ -46,6 +46,7 @@ namespace Hashtool
                 this.textResult.AllowDrop = false;
                 this.panelSetting.Enabled = false;
             }
+            SetFilePathTip("正在计算: 无");
         }
 
         private void SetStopState()
@@ -72,6 +73,16 @@ namespace Hashtool
                 this.textResult.AllowDrop = true;
                 this.panelSetting.Enabled = true;
             }
+            SetFilePathTip("正在计算: 无");
+        }
+
+        private void SetFilePathTip(string filePath)
+        {
+            this.toolTip1.SetToolTip(this.panelStatus, $"正在计算: {filePath}");
+            this.toolTip1.SetToolTip(this.labelSingle, $"正在计算: {filePath}");
+            this.toolTip1.SetToolTip(this.labelTotal, $"正在计算: {filePath}");
+            this.toolTip1.SetToolTip(this.pbSingle, $"正在计算: {filePath}");
+            this.toolTip1.SetToolTip(this.pbTotal, $"正在计算: {filePath}");
         }
 
         private List<HashAlgType> GetAlgEnabledList()
@@ -204,6 +215,9 @@ namespace Hashtool
                     {
                         break;
                     }
+
+                    // 设置进度条悬停提示
+                    SetFilePathTip(fInfo.FullName);
 
                     // 清空单个文件进度条
                     lock (pbValueLock)
