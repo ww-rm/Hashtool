@@ -169,7 +169,7 @@ namespace Hashtool
             | System.Windows.Forms.AnchorStyles.Right)));
             this.btnOpen.AutoSize = true;
             this.btnOpen.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.btnOpen.Location = new System.Drawing.Point(1, 1);
+            this.btnOpen.Location = new System.Drawing.Point(3, 1);
             this.btnOpen.Margin = new System.Windows.Forms.Padding(0);
             this.btnOpen.Name = "btnOpen";
             this.btnOpen.Size = new System.Drawing.Size(126, 36);
@@ -311,7 +311,7 @@ namespace Hashtool
             this.pnlButton.Location = new System.Drawing.Point(5, 310);
             this.pnlButton.Margin = new System.Windows.Forms.Padding(0);
             this.pnlButton.Name = "pnlButton";
-            this.pnlButton.Padding = new System.Windows.Forms.Padding(1);
+            this.pnlButton.Padding = new System.Windows.Forms.Padding(3, 1, 3, 1);
             this.pnlButton.RowCount = 1;
             this.pnlButton.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.pnlButton.Size = new System.Drawing.Size(762, 38);
@@ -361,7 +361,7 @@ namespace Hashtool
             this.algPanel.Location = new System.Drawing.Point(650, 5);
             this.algPanel.Margin = new System.Windows.Forms.Padding(0);
             this.algPanel.Name = "algPanel";
-            this.algPanel.Padding = new System.Windows.Forms.Padding(1);
+            this.algPanel.Padding = new System.Windows.Forms.Padding(3, 1, 3, 1);
             this.algPanel.RowCount = 7;
             this.algPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.algPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
@@ -405,7 +405,7 @@ namespace Hashtool
             this.panelSetting.Location = new System.Drawing.Point(650, 249);
             this.panelSetting.Margin = new System.Windows.Forms.Padding(0);
             this.panelSetting.Name = "panelSetting";
-            this.panelSetting.Padding = new System.Windows.Forms.Padding(1);
+            this.panelSetting.Padding = new System.Windows.Forms.Padding(3, 1, 3, 1);
             this.panelSetting.RowCount = 2;
             this.panelSetting.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.panelSetting.RowStyles.Add(new System.Windows.Forms.RowStyle());
@@ -419,7 +419,7 @@ namespace Hashtool
             this.cbUpperCase.AutoSize = true;
             this.cbUpperCase.Checked = true;
             this.cbUpperCase.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cbUpperCase.Location = new System.Drawing.Point(1, 1);
+            this.cbUpperCase.Location = new System.Drawing.Point(3, 1);
             this.cbUpperCase.Margin = new System.Windows.Forms.Padding(0);
             this.cbUpperCase.Name = "cbUpperCase";
             this.cbUpperCase.Size = new System.Drawing.Size(115, 27);
