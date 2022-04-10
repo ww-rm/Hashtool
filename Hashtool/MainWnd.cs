@@ -21,6 +21,8 @@ namespace Hashtool
 
         private void MainForm_Load(object sender, EventArgs e)
         {
+            // TODO: 调整进度条长度?
+            
             // 初始化界面
             SetStopState();
         }
