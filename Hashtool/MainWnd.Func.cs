@@ -26,14 +26,14 @@ namespace Hashtool
             if (this.InvokeRequired)
             {
                 // BeginInvoke 可以防止死锁
-                this.algPanel.BeginInvoke(new Action(() => this.algPanel.Enabled = false));
-                this.btnOpen.BeginInvoke(new Action(() => this.btnOpen.Enabled = false));
-                this.btnClear.BeginInvoke(new Action(() => this.btnClear.Enabled = false));
-                this.btnCopy.BeginInvoke(new Action(() => this.btnCopy.Enabled = false));
-                this.btnSave.BeginInvoke(new Action(() => this.btnSave.Enabled = false));
-                this.btnStop.BeginInvoke(new Action(() => this.btnStop.Enabled = true));
-                this.textResult.BeginInvoke(new Action(() => this.textResult.AllowDrop = false));
-                this.panelSetting.BeginInvoke(new Action(() => this.panelSetting.Enabled = false));
+                this.BeginInvoke(new Action(() => this.algPanel.Enabled = false));
+                this.BeginInvoke(new Action(() => this.btnOpen.Enabled = false));
+                this.BeginInvoke(new Action(() => this.btnClear.Enabled = false));
+                this.BeginInvoke(new Action(() => this.btnCopy.Enabled = false));
+                this.BeginInvoke(new Action(() => this.btnSave.Enabled = false));
+                this.BeginInvoke(new Action(() => this.btnStop.Enabled = true));
+                this.BeginInvoke(new Action(() => this.textResult.AllowDrop = false));
+                this.BeginInvoke(new Action(() => this.panelSetting.Enabled = false));
             }
             else
             {
@@ -46,21 +46,21 @@ namespace Hashtool
                 this.textResult.AllowDrop = false;
                 this.panelSetting.Enabled = false;
             }
-            SetFilePathTip("正在计算: 无");
+            SetFilePathTip("无");
         }
 
         private void SetStopState()
         {
-            if (this.algPanel.InvokeRequired)
+            if (this.InvokeRequired)
             {
-                this.algPanel.BeginInvoke(new Action(() => this.algPanel.Enabled = true));
-                this.btnOpen.BeginInvoke(new Action(() => this.btnOpen.Enabled = true));
-                this.btnClear.BeginInvoke(new Action(() => this.btnClear.Enabled = true));
-                this.btnCopy.BeginInvoke(new Action(() => this.btnCopy.Enabled = true));
-                this.btnSave.BeginInvoke(new Action(() => this.btnSave.Enabled = true));
-                this.btnStop.BeginInvoke(new Action(() => this.btnStop.Enabled = false));
-                this.textResult.BeginInvoke(new Action(() => this.textResult.AllowDrop = true));
-                this.panelSetting.BeginInvoke(new Action(() => this.panelSetting.Enabled = true));
+                this.BeginInvoke(new Action(() => this.algPanel.Enabled = true));
+                this.BeginInvoke(new Action(() => this.btnOpen.Enabled = true));
+                this.BeginInvoke(new Action(() => this.btnClear.Enabled = true));
+                this.BeginInvoke(new Action(() => this.btnCopy.Enabled = true));
+                this.BeginInvoke(new Action(() => this.btnSave.Enabled = true));
+                this.BeginInvoke(new Action(() => this.btnStop.Enabled = false));
+                this.BeginInvoke(new Action(() => this.textResult.AllowDrop = true));
+                this.BeginInvoke(new Action(() => this.panelSetting.Enabled = true));
             }
             else
             {
@@ -73,16 +73,27 @@ namespace Hashtool
                 this.textResult.AllowDrop = true;
                 this.panelSetting.Enabled = true;
             }
-            SetFilePathTip("正在计算: 无");
+            SetFilePathTip("无");
         }
 
         private void SetFilePathTip(string filePath)
         {
-            this.toolTip1.SetToolTip(this.panelStatus, $"正在计算: {filePath}");
-            this.toolTip1.SetToolTip(this.labelSingle, $"正在计算: {filePath}");
-            this.toolTip1.SetToolTip(this.labelTotal, $"正在计算: {filePath}");
-            this.toolTip1.SetToolTip(this.pbSingle, $"正在计算: {filePath}");
-            this.toolTip1.SetToolTip(this.pbTotal, $"正在计算: {filePath}");
+            if (this.InvokeRequired)
+            {
+                this.BeginInvoke(new Action(() => this.toolTip1.SetToolTip(this.panelStatus, $"正在计算: {filePath}")));
+                this.BeginInvoke(new Action(() => this.toolTip1.SetToolTip(this.labelSingle, $"正在计算: {filePath}")));
+                this.BeginInvoke(new Action(() => this.toolTip1.SetToolTip(this.labelTotal, $"正在计算: {filePath}")));
+                this.BeginInvoke(new Action(() => this.toolTip1.SetToolTip(this.pbSingle, $"正在计算: {filePath}")));
+                this.BeginInvoke(new Action(() => this.toolTip1.SetToolTip(this.pbTotal, $"正在计算: {filePath}")));
+            }
+            else
+            {
+                this.toolTip1.SetToolTip(this.panelStatus, $"正在计算: {filePath}");
+                this.toolTip1.SetToolTip(this.labelSingle, $"正在计算: {filePath}");
+                this.toolTip1.SetToolTip(this.labelTotal, $"正在计算: {filePath}");
+                this.toolTip1.SetToolTip(this.pbSingle, $"正在计算: {filePath}");
+                this.toolTip1.SetToolTip(this.pbTotal, $"正在计算: {filePath}");
+            }
         }
 
         private List<HashAlgType> GetAlgEnabledList()
