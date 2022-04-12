@@ -361,10 +361,8 @@ namespace Hashtool
         /// <summary>
         /// 扩展函数, 把 512 bit 的 16 个字扩展成 132 个字
         /// </summary>
-        /// <param name="data">16 个 32 bit 字</param>
-        private void Expand(uint[] data)
+        private void Expand()
         {
-            Array.Copy(data, 0, wordsBuffer1, 0, 16);
             for (int j = 16; j < 68; j++)
             {
                 wordsBuffer1[j] = P1(wordsBuffer1[j - 16] ^ wordsBuffer1[j - 9] ^ ROL(wordsBuffer1[j - 3], 15))
@@ -381,9 +379,9 @@ namespace Hashtool
         /// 压缩函数, 每次接收 16 个 32 bit 字的数据进行压缩, 会更新 sm3HashValue 的值
         /// </summary>
         /// <param name="data"></param>
-        private void CF(uint[] data)
+        private void CF()
         {
-            Expand(data);
+            Expand();
 
             uint A = sm3HashValue[0];
             uint B = sm3HashValue[1];
@@ -423,22 +421,20 @@ namespace Hashtool
         }
 
         /// <summary>
-        /// 把 64 字节转换成 16 个 32 bit 字
+        /// 读取 64 字节数据进入待计算缓冲区
         /// </summary>
         /// <param name="data"></param>
         /// <param name="dataStart"></param>
         /// <returns></returns>
-        private uint[] Bytes2Words(byte[] data, int dataStart = 0)
+        private void ReadBytes(byte[] data, int dataStart = 0)
         {
-            uint[] words = new uint[16];
             for (int i = 0; i < 16; i++)
             {
-                words[i] = ((uint)data[dataStart + i * 4    ] << 24)
-                         | ((uint)data[dataStart + i * 4 + 1] << 16)
-                         | ((uint)data[dataStart + i * 4 + 2] <<  8)
-                         | ((uint)data[dataStart + i * 4 + 3]      );
+                wordsBuffer1[i] = ((uint)data[dataStart + i * 4    ] << 24)
+                                | ((uint)data[dataStart + i * 4 + 1] << 16)
+                                | ((uint)data[dataStart + i * 4 + 2] <<  8)
+                                | ((uint)data[dataStart + i * 4 + 3]      );
             }
-            return words;
         }
 
         public override void Initialize()
@@ -468,12 +464,15 @@ namespace Hashtool
                 // 处理上一次缓冲区剩余的数据
                 Array.Copy(array, 0, dataBuffer, dataBufferLen, 64 - dataBufferLen);
                 readPos += 64 - dataBufferLen;
-                CF(Bytes2Words(dataBuffer));
+                ReadBytes(dataBuffer);
+                CF();
 
                 // 按每 64 个字节来读取数据
-                for (; readPos + 64 < ibStart + cbSize; readPos += 64)
+                while (readPos + 64 < ibStart + cbSize)
                 {
-                    CF(Bytes2Words(array, ibStart + readPos));
+                    ReadBytes(array, ibStart + readPos);
+                    readPos += 64;
+                    CF();
                 }
 
                 // 保留本次剩余数据
@@ -514,7 +513,8 @@ namespace Hashtool
             dataBuffer[62] = (byte)(msgBitLen >>  8);
             dataBuffer[63] = (byte)(msgBitLen      );
 
-            CF(Bytes2Words(dataBuffer));
+            ReadBytes(dataBuffer);
+            CF();
 
             for (int i = 0; i < 8; i++)
             {
