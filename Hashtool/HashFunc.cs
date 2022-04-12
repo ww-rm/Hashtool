@@ -69,7 +69,209 @@ namespace Hashtool
         }
     }
 
-    public class SHA3_256 : HashAlgorithm
+    public abstract class SHA3Base : HashAlgorithm
+    {
+        // 常量
+        //protected const int b = 1600;
+        //protected const int w = 64;
+        //protected const int l = 6;
+
+        private static int[,] laneOffset = new int[5, 5] {
+            {   0,  1,  190,  28,  91 },
+            {  36, 300,   6,  55, 276 },
+            {   3,  10, 171, 153, 231 },
+            { 105,  45,  15,  21, 136 },
+            { 210,  66, 253, 120,  78 },
+        };
+
+        private static ulong[] RC_table = new ulong[24]
+        {
+            0x0000000000000001,
+            0x0000000000008082,
+            0x800000000000808a,
+            0x8000000080008000,
+            0x000000000000808b,
+            0x0000000080000001,
+            0x8000000080008081,
+            0x8000000000008009,
+            0x000000000000008a,
+            0x0000000000000088,
+            0x0000000080008009,
+            0x000000008000000a,
+            0x000000008000808b,
+            0x800000000000008b,
+            0x8000000000008089,
+            0x8000000000008003,
+            0x8000000000008002,
+            0x8000000000000080,
+            0x000000000000800a,
+            0x800000008000000a,
+            0x8000000080008081,
+            0x8000000000008080,
+            0x0000000080000001,
+            0x8000000080008008,
+        };
+
+        private static void PreCompRCtable()
+        {
+            
+        }
+
+        // 放置顺序是先 x 后 y, 64 bit 大端存储
+        // (0, 0) -> (0, 1) -> ... (y, x) -> (y, x + 1) -> (4, 4)
+        private ulong[,] state = new ulong[5, 5];
+
+        /// <summary>
+        /// 循环左移
+        /// </summary>
+        /// <param name="X"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        private static ulong ROL(ulong X, int count)
+        {
+            // C# 里移位运算符自动模数值长度, 所以不需要对 count 进行处理
+            // 当 count 为 0 或 64 时, 左右两半都没移位, 因此只能用或运算符进行连接
+            return (X << count) | (X >> (-count));
+        }
+
+        /// <summary>
+        /// 循环右移
+        /// </summary>
+        /// <param name="X"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        private static ulong ROR(ulong X, int count)
+        {
+            // C# 里移位运算符自动模数值长度, 所以不需要对 count 进行处理
+            // 当 count 为 0 或 64 时, 左右两半都没移位, 因此只能用或运算符进行连接
+            return (X >> count) | (X << (-count));
+        }
+
+
+        private ulong[] C = new ulong[5];
+        private ulong[] D = new ulong[5];
+        private void Theta()
+        {
+            // 把 5 个 Plane 压缩成 C
+            for(int x = 0; x < 5; x++)
+            {
+                C[x] = state[0, x] ^ state[1, x] ^ state[2, x] ^ state[3, x] ^ state[4, x];
+            }
+
+            // 对 C 混合产生 D
+            D[0] = C[4] ^ ROR(C[1], 1);
+            D[1] = C[0] ^ ROR(C[2], 1);
+            D[2] = C[1] ^ ROR(C[3], 1);
+            D[3] = C[2] ^ ROR(C[4], 1);
+            D[4] = C[3] ^ ROR(C[0], 1);
+
+            // 对每一个 Plane[i] 用 D 异或一次
+            for(int y = 0; y < 5; y++)
+            {
+                for(int x = 0; x < 5; x++)
+                {
+                    state[y, x] ^= D[x];
+                }
+            }
+        }
+
+        private void Rho()
+        {
+            for (int y = 0; y < 5; y++)
+            {
+                for (int x = 0; x < 5; x++)
+                {
+                    state[y, x] = ROR(state[y, x], laneOffset[y, x]);
+                }
+            }
+        }
+
+        private void Pi()
+        {
+            ulong tmp = state[3, 3];
+            state[3, 3] = state[3, 2];
+            state[3, 2] = state[2, 1];
+            state[2, 1] = state[1, 2];
+            state[1, 2] = state[2, 0];
+            state[2, 0] = state[0, 1];
+            state[0, 1] = state[1, 1];
+            state[1, 1] = state[1, 4];
+            state[1, 4] = state[4, 2];
+            state[4, 2] = state[2, 4];
+            state[2, 4] = state[4, 0];
+            state[4, 0] = state[0, 2];
+            state[0, 2] = state[2, 2];
+            state[2, 2] = state[2, 3];
+            state[2, 3] = state[3, 4];
+            state[3, 4] = state[4, 3];
+            state[4, 3] = state[3, 0];
+            state[3, 0] = state[0, 4];
+            state[0, 4] = state[4, 4];
+            state[4, 4] = state[4, 1];
+            state[4, 1] = state[1, 3];
+            state[1, 3] = state[3, 1];
+            state[3, 1] = state[1, 0];
+            state[1, 0] = state[0, 3];
+            state[0, 3] = tmp;
+        }
+
+        private void Chi()
+        {
+            ulong tmp1, tmp2;
+            for(int y = 0; y < 5; y++)
+            { 
+                tmp1 = state[y, 1];
+                tmp2 = state[y, 2];
+                state[y, 0] ^= ~state[y, 1] & state[y, 2];
+                state[y, 1] ^= ~state[y, 2] & state[y, 3];
+                state[y, 2] ^= ~state[y, 3] & state[y, 4];
+                state[y, 3] ^= ~state[y, 4] & tmp1;
+                state[y, 4] ^= ~tmp1 & tmp2;
+            }
+        }
+
+        private void Iota(int roundIndex)
+        {
+            state[0, 0] ^= RC_table[roundIndex];
+        }
+
+        protected void Rnd(int roundIndex)
+        {
+            Theta();
+            Rho();
+            Pi();
+            Chi();
+            Iota(roundIndex);
+        }
+
+        protected void Keccak()
+        {
+            for (int i = 0; i < 24; i++)
+            {
+                Rnd(i);
+            }
+        }
+    }
+
+    public class SHA3_256 : SHA3Base
+    {
+        public override void Initialize()
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override void HashCore(byte[] array, int ibStart, int cbSize)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override byte[] HashFinal()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class SHA3_512 : SHA3Base
     {
         public override void Initialize()
         {
@@ -89,7 +291,7 @@ namespace Hashtool
 
     public class SM3 : HashAlgorithm
     {
-        private uint[] ROL_T_table = new uint[64] {
+        private static uint[] ROL_T_table = new uint[64] {
             0x79cc4519, 0xf3988a32, 0xe7311465, 0xce6228cb, 0x9cc45197, 0x3988a32f, 0x7311465e, 0xe6228cbc,
             0xcc451979, 0x988a32f3, 0x311465e7, 0x6228cbce, 0xc451979c, 0x88a32f39, 0x11465e73, 0x228cbce6,
             0x9d8a7a87, 0x3b14f50f, 0x7629ea1e, 0xec53d43c, 0xd8a7a879, 0xb14f50f3, 0x629ea1e7, 0xc53d43ce,
@@ -100,6 +302,17 @@ namespace Hashtool
             0x8a7a879d, 0x14f50f3b, 0x29ea1e76, 0x53d43cec, 0xa7a879d8, 0x4f50f3b1, 0x9ea1e762, 0x3d43cec5,
         };
 
+        /// <summary>
+        /// 预计算 ROL(T(j), j)
+        /// </summary>
+        private static void PreCompROLTtable()
+        {
+            for (int j = 0; j < 64; j++)
+            {
+                ROL_T_table[j] = ROL(T(j), j);
+            }
+        }
+
         private uint[] sm3HashValue = new uint[8];
         private ulong msgLength = 0; // 数据最大长度为 2 的 64 次方 bit
 
@@ -109,48 +322,41 @@ namespace Hashtool
         private uint[] wordsBuffer1 = new uint[68];
         private uint[] wordsBuffer2 = new uint[64];
 
-        /// <summary>
-        /// 预计算 ROL(T(j), j)
-        /// </summary>
-        private void PreCompROLTtable()
-        {
-            for (int j = 0; j < 64; j++)
-            {
-                ROL_T_table[j] = ROL(T(j), j);
-            }
-        }
+        #region 静态辅助方法
 
-        private uint T(int j)
+        private static uint T(int j)
         {
             return j <= 15 ? 0x79cc4519u : 0x7a879d8au;
         }
 
-        private uint FF(int j, uint X, uint Y, uint Z)
+        private static uint FF(int j, uint X, uint Y, uint Z)
         {
             return j <= 15 ? (X ^ Y ^ Z) : ((X & Y) | (X & Z) | (Y & Z));
         }
 
-        private uint GG(int j, uint X, uint Y, uint Z)
+        private static uint GG(int j, uint X, uint Y, uint Z)
         {
             return j <= 15 ? (X ^ Y ^ Z) : ((X & Y) | (~X & Z));
         }
 
-        private uint ROL(uint X, int count)
+        private static uint ROL(uint X, int count)
         {
             // C# 里移位运算符自动模数值长度, 所以不需要对 count 进行处理
             // 当 count 为 0 或 32 时, 左右两半都没移位, 因此只能用或运算符进行连接
             return (X << count) | (X >> (-count));
         }
 
-        private uint P0(uint X)
+        private static uint P0(uint X)
         {
             return X ^ ROL(X, 9) ^ ROL(X, 17);
         }
 
-        private uint P1(uint X)
+        private static uint P1(uint X)
         {
             return X ^ ROL(X, 15) ^ ROL(X, 23);
         }
+
+        #endregion
 
         /// <summary>
         /// 扩展函数, 把 512 bit 的 16 个字扩展成 132 个字
@@ -323,7 +529,7 @@ namespace Hashtool
 
     public class CRC32 : HashAlgorithm
     {
-        private uint[] modTable = new uint[256] {
+        private static uint[] modTable = new uint[256] {
             0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f, 0xe963a535, 0x9e6495a3, 0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988, 0x09b64c2b, 0x7eb17cbd, 0xe7b82d07, 0x90bf1d91,
             0x1db71064, 0x6ab020f2, 0xf3b97148, 0x84be41de, 0x1adad47d, 0x6ddde4eb, 0xf4d4b551, 0x83d385c7, 0x136c9856, 0x646ba8c0, 0xfd62f97a, 0x8a65c9ec, 0x14015c4f, 0x63066cd9, 0xfa0f3d63, 0x8d080df5,
             0x3b6e20c8, 0x4c69105e, 0xd56041e4, 0xa2677172, 0x3c03e4d1, 0x4b04d447, 0xd20d85fd, 0xa50ab56b, 0x35b5a8fa, 0x42b2986c, 0xdbbbc9d6, 0xacbcf940, 0x32d86ce3, 0x45df5c75, 0xdcd60dcf, 0xabd13d59,
@@ -341,12 +547,11 @@ namespace Hashtool
             0xa00ae278, 0xd70dd2ee, 0x4e048354, 0x3903b3c2, 0xa7672661, 0xd06016f7, 0x4969474d, 0x3e6e77db, 0xaed16a4a, 0xd9d65adc, 0x40df0b66, 0x37d83bf0, 0xa9bcae53, 0xdebb9ec5, 0x47b2cf7f, 0x30b5ffe9,
             0xbdbdf21c, 0xcabac28a, 0x53b39330, 0x24b4a3a6, 0xbad03605, 0xcdd70693, 0x54de5729, 0x23d967bf, 0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94, 0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
         };
-        private uint crc32Code = 0;
 
         /// <summary>
         /// 预计算每个字节模多项式余数
         /// </summary>
-        private void PreCompModTable()
+        private static void PreCompModTable()
         {
             modTable = new uint[256];
             for (int i = 0; i < 256; i++)
@@ -366,6 +571,8 @@ namespace Hashtool
                 modTable[i] = tmp;
             }
         }
+
+        private uint crc32Code = 0;
 
         public override void Initialize()
         {
