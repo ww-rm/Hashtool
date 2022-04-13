@@ -88,36 +88,58 @@ namespace Hashtool
         {
             0x0000000000000001,
             0x0000000000008082,
-            0x800000000000808a,
-            0x8000000080008000,
+            0x000000000000808a,
+            0x0000000080008000,
             0x000000000000808b,
             0x0000000080000001,
-            0x8000000080008081,
-            0x8000000000008009,
+            0x0000000080008081,
+            0x0000000000008009,
             0x000000000000008a,
             0x0000000000000088,
             0x0000000080008009,
             0x000000008000000a,
             0x000000008000808b,
-            0x800000000000008b,
-            0x8000000000008089,
-            0x8000000000008003,
-            0x8000000000008002,
-            0x8000000000000080,
+            0x000000000000008b,
+            0x0000000000008089,
+            0x0000000000008003,
+            0x0000000000008002,
+            0x0000000000000080,
             0x000000000000800a,
-            0x800000008000000a,
-            0x8000000080008081,
-            0x8000000000008080,
+            0x000000008000000a,
+            0x0000000080008081,
+            0x0000000000008080,
             0x0000000080000001,
-            0x8000000080008008,
+            0x0000000080008008
         };
 
-        private static void PreCompRCtable()
+        protected static void PreCompRCtable()
         {
-            
+            ulong rc(int t)
+            {
+                ulong R = 0x01;
+                if (t % 255 != 0)
+                {
+                    for (int i = 0; i < t % 255; i++)
+                    {
+                        R <<= 1;
+                        R ^= ((R >> 8) & 0x01u) | ((R >> 4) & 0x10u) | ((R >> 3) & 0x20u) | ((R >> 2) & 0x40u);
+                        R &= 0xffu;
+                    }
+                }
+                return R & 0x01u;
+            }
+            for (int i = 0; i < 24; i++)
+            {
+                ulong RC = 0x00;
+                for (int j = 0; j < 6; j++)
+                {
+                    RC |= rc(j + (7 * i)) << ((1 << j) - 1);
+                }
+                RC_table[i] = RC;
+            }
         }
 
-        // 放置顺序是先 x 后 y, 64 bit 大端存储
+        // 放置顺序是先 x 后 y, 64 bit 小端存储
         // (0, 0) -> (0, 1) -> ... (y, x) -> (y, x + 1) -> (4, 4)
         private ulong[,] state = new ulong[5, 5];
 
@@ -159,11 +181,11 @@ namespace Hashtool
             }
 
             // 对 C 混合产生 D
-            D[0] = C[4] ^ ROR(C[1], 1);
-            D[1] = C[0] ^ ROR(C[2], 1);
-            D[2] = C[1] ^ ROR(C[3], 1);
-            D[3] = C[2] ^ ROR(C[4], 1);
-            D[4] = C[3] ^ ROR(C[0], 1);
+            D[0] = C[4] ^ ROL(C[1], 1);
+            D[1] = C[0] ^ ROL(C[2], 1);
+            D[2] = C[1] ^ ROL(C[3], 1);
+            D[3] = C[2] ^ ROL(C[4], 1);
+            D[4] = C[3] ^ ROL(C[0], 1);
 
             // 对每一个 Plane[i] 用 D 异或一次
             for(int y = 0; y < 5; y++)
@@ -181,7 +203,7 @@ namespace Hashtool
             {
                 for (int x = 0; x < 5; x++)
                 {
-                    state[y, x] = ROR(state[y, x], laneOffset[y, x]);
+                    state[y, x] = ROL(state[y, x], laneOffset[y, x]);
                 }
             }
         }
@@ -426,7 +448,7 @@ namespace Hashtool
         /// <param name="data"></param>
         /// <param name="dataStart"></param>
         /// <returns></returns>
-        private void ReadBytes(byte[] data, int dataStart = 0)
+        private void Read64Bytes(byte[] data, int dataStart = 0)
         {
             for (int i = 0; i < 16; i++)
             {
@@ -464,13 +486,13 @@ namespace Hashtool
                 // 处理上一次缓冲区剩余的数据
                 Array.Copy(array, 0, dataBuffer, dataBufferLen, 64 - dataBufferLen);
                 readPos += 64 - dataBufferLen;
-                ReadBytes(dataBuffer);
+                Read64Bytes(dataBuffer);
                 CF();
 
                 // 按每 64 个字节来读取数据
                 while (readPos + 64 < ibStart + cbSize)
                 {
-                    ReadBytes(array, ibStart + readPos);
+                    Read64Bytes(array, ibStart + readPos);
                     readPos += 64;
                     CF();
                 }
@@ -513,7 +535,7 @@ namespace Hashtool
             dataBuffer[62] = (byte)(msgBitLen >>  8);
             dataBuffer[63] = (byte)(msgBitLen      );
 
-            ReadBytes(dataBuffer);
+            Read64Bytes(dataBuffer);
             CF();
 
             for (int i = 0; i < 8; i++)
