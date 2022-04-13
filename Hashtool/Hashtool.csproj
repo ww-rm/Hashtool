@@ -138,7 +138,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>DEL "$(TargetDir)$(TargetName) x64.zip"
-MAKECAB $(TargetPath) "$(TargetDir)$(TargetName) x64.zip"</PostBuildEvent>
+    <PostBuildEvent>DEL "$(TargetDir)$(TargetName) $(ConfigurationName) x64.zip"
+MAKECAB $(TargetPath) "$(TargetDir)$(TargetName) $(ConfigurationName) x64.zip"</PostBuildEvent>
   </PropertyGroup>
 </Project>
