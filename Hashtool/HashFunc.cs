@@ -133,7 +133,7 @@ namespace Hashtool
             for (int i = 0; i < 24; i++)
             {
                 ulong RC = 0x00;
-                for (int j = 0; j < 6; j++)
+                for (int j = 0; j <= 6; j++)
                 {
                     RC |= rc(j + (7 * i)) << ((1 << j) - 1);
                 }
