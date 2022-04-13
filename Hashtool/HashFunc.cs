@@ -1,17 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Security.Cryptography;
-using System.IO;
-using System.Runtime.InteropServices;
 
 namespace Hashtool
 {
     public enum HashAlgType
     {
-        MD5, SHA1, SHA2_256, SHA2_512, SHA3_256, SM3, CRC32
+        MD5, SHA1, SHA2_256, SHA2_512, SHA3_256, SHA3_512, SM3, CRC32
     }
 
     public static class HashAlgHandler
@@ -33,6 +27,8 @@ namespace Hashtool
                     return "SHA2-512";
                 case HashAlgType.SHA3_256:
                     return "SHA3-256";
+                case HashAlgType.SHA3_512:
+                    return "SHA3-512";
                 case HashAlgType.SM3:
                     return "SM3";
                 case HashAlgType.CRC32:
@@ -59,6 +55,8 @@ namespace Hashtool
                     return SHA512.Create();
                 case HashAlgType.SHA3_256:
                     return new SHA3_256();
+                case HashAlgType.SHA3_512:
+                    return new SHA3_512();
                 case HashAlgType.SM3:
                     return new SM3();
                 case HashAlgType.CRC32:

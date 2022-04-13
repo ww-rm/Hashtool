@@ -56,6 +56,7 @@ namespace Hashtool
             this.cbUpperCase = new System.Windows.Forms.CheckBox();
             this.cbUseMultiThread = new System.Windows.Forms.CheckBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.cbSHA3_512 = new System.Windows.Forms.CheckBox();
             this.pnlButton.SuspendLayout();
             this.algPanel.SuspendLayout();
             this.panelStatus.SuspendLayout();
@@ -135,7 +136,7 @@ namespace Hashtool
             this.cbSM3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.cbSM3.AutoSize = true;
-            this.cbSM3.Location = new System.Drawing.Point(1, 136);
+            this.cbSM3.Location = new System.Drawing.Point(1, 163);
             this.cbSM3.Margin = new System.Windows.Forms.Padding(0);
             this.cbSM3.Name = "cbSM3";
             this.cbSM3.Size = new System.Drawing.Size(118, 27);
@@ -148,7 +149,7 @@ namespace Hashtool
             this.cbCRC32.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.cbCRC32.AutoSize = true;
-            this.cbCRC32.Location = new System.Drawing.Point(1, 163);
+            this.cbCRC32.Location = new System.Drawing.Point(1, 190);
             this.cbCRC32.Margin = new System.Windows.Forms.Padding(0);
             this.cbCRC32.Name = "cbCRC32";
             this.cbCRC32.Size = new System.Drawing.Size(118, 27);
@@ -345,18 +346,19 @@ namespace Hashtool
             this.algPanel.AutoSize = true;
             this.algPanel.ColumnCount = 1;
             this.algPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.algPanel.Controls.Add(this.cbSHA3_512, 0, 5);
             this.algPanel.Controls.Add(this.cbSHA2_512, 0, 3);
-            this.algPanel.Controls.Add(this.cbSM3, 0, 5);
+            this.algPanel.Controls.Add(this.cbSM3, 0, 6);
             this.algPanel.Controls.Add(this.cbSHA2_256, 0, 2);
             this.algPanel.Controls.Add(this.cbSHA3_256, 0, 4);
             this.algPanel.Controls.Add(this.cbMD5, 0, 0);
             this.algPanel.Controls.Add(this.cbSHA1, 0, 1);
-            this.algPanel.Controls.Add(this.cbCRC32, 0, 6);
+            this.algPanel.Controls.Add(this.cbCRC32, 0, 7);
             this.algPanel.Location = new System.Drawing.Point(650, 5);
             this.algPanel.Margin = new System.Windows.Forms.Padding(0);
             this.algPanel.Name = "algPanel";
             this.algPanel.Padding = new System.Windows.Forms.Padding(1);
-            this.algPanel.RowCount = 7;
+            this.algPanel.RowCount = 8;
             this.algPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.algPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.algPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
@@ -364,8 +366,8 @@ namespace Hashtool
             this.algPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.algPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.algPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.algPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28F));
-            this.algPanel.Size = new System.Drawing.Size(120, 191);
+            this.algPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.algPanel.Size = new System.Drawing.Size(120, 218);
             this.algPanel.TabIndex = 12;
             // 
             // panelStatus
@@ -434,6 +436,19 @@ namespace Hashtool
             this.toolTip1.SetToolTip(this.cbUseMultiThread, "使用多线程同时计算所有算法");
             this.cbUseMultiThread.UseVisualStyleBackColor = true;
             // 
+            // cbSHA3_512
+            // 
+            this.cbSHA3_512.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.cbSHA3_512.AutoSize = true;
+            this.cbSHA3_512.Location = new System.Drawing.Point(1, 136);
+            this.cbSHA3_512.Margin = new System.Windows.Forms.Padding(0);
+            this.cbSHA3_512.Name = "cbSHA3_512";
+            this.cbSHA3_512.Size = new System.Drawing.Size(118, 27);
+            this.cbSHA3_512.TabIndex = 7;
+            this.cbSHA3_512.Text = "SHA3-512";
+            this.cbSHA3_512.UseVisualStyleBackColor = true;
+            // 
             // MainWnd
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 23F);
@@ -493,6 +508,7 @@ namespace Hashtool
         private System.Windows.Forms.CheckBox cbUseMultiThread;
         private System.Windows.Forms.ToolTip toolTip1;
         private System.Windows.Forms.Button btnAbout;
+        private System.Windows.Forms.CheckBox cbSHA3_512;
     }
 }
 

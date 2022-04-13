@@ -119,6 +119,10 @@ namespace Hashtool
             {
                 result.Add(HashAlgType.SHA3_256);
             }
+            if (cbSHA3_512.Checked)
+            {
+                result.Add(HashAlgType.SHA3_512);
+            }
             if (cbSM3.Checked)
             {
                 result.Add(HashAlgType.SM3);

@@ -30,6 +30,7 @@ namespace Hashtool
             //cbSHA2_256.Checked = true;
             //cbSHA2_512.Checked = true;
             cbSHA3_256.Checked = true;
+            //cbSHA3_512.Checked = true;
             //cbSM3.Checked = true;
             //cbCRC32.Checked = true;
 
