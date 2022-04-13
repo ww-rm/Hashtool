@@ -51,12 +51,12 @@ namespace Hashtool
             this.btnAbout = new System.Windows.Forms.Button();
             this.cbSHA2_512 = new System.Windows.Forms.CheckBox();
             this.algPanel = new System.Windows.Forms.TableLayoutPanel();
+            this.cbSHA3_512 = new System.Windows.Forms.CheckBox();
             this.panelStatus = new System.Windows.Forms.TableLayoutPanel();
             this.panelSetting = new System.Windows.Forms.TableLayoutPanel();
             this.cbUpperCase = new System.Windows.Forms.CheckBox();
             this.cbUseMultiThread = new System.Windows.Forms.CheckBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.cbSHA3_512 = new System.Windows.Forms.CheckBox();
             this.pnlButton.SuspendLayout();
             this.algPanel.SuspendLayout();
             this.panelStatus.SuspendLayout();
@@ -370,6 +370,19 @@ namespace Hashtool
             this.algPanel.Size = new System.Drawing.Size(120, 218);
             this.algPanel.TabIndex = 12;
             // 
+            // cbSHA3_512
+            // 
+            this.cbSHA3_512.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.cbSHA3_512.AutoSize = true;
+            this.cbSHA3_512.Location = new System.Drawing.Point(1, 136);
+            this.cbSHA3_512.Margin = new System.Windows.Forms.Padding(0);
+            this.cbSHA3_512.Name = "cbSHA3_512";
+            this.cbSHA3_512.Size = new System.Drawing.Size(118, 27);
+            this.cbSHA3_512.TabIndex = 7;
+            this.cbSHA3_512.Text = "SHA3-512";
+            this.cbSHA3_512.UseVisualStyleBackColor = true;
+            // 
             // panelStatus
             // 
             this.panelStatus.AutoSize = true;
@@ -436,19 +449,6 @@ namespace Hashtool
             this.toolTip1.SetToolTip(this.cbUseMultiThread, "使用多线程同时计算所有算法");
             this.cbUseMultiThread.UseVisualStyleBackColor = true;
             // 
-            // cbSHA3_512
-            // 
-            this.cbSHA3_512.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.cbSHA3_512.AutoSize = true;
-            this.cbSHA3_512.Location = new System.Drawing.Point(1, 136);
-            this.cbSHA3_512.Margin = new System.Windows.Forms.Padding(0);
-            this.cbSHA3_512.Name = "cbSHA3_512";
-            this.cbSHA3_512.Size = new System.Drawing.Size(118, 27);
-            this.cbSHA3_512.TabIndex = 7;
-            this.cbSHA3_512.Text = "SHA3-512";
-            this.cbSHA3_512.UseVisualStyleBackColor = true;
-            // 
             // MainWnd
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 23F);
@@ -466,6 +466,7 @@ namespace Hashtool
             this.Margin = new System.Windows.Forms.Padding(7, 6, 7, 6);
             this.MaximizeBox = false;
             this.Name = "MainWnd";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Hashtool";
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.pnlButton.ResumeLayout(false);
