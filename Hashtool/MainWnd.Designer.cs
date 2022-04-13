@@ -83,8 +83,6 @@ namespace Hashtool
             this.cbMD5.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.cbMD5.AutoSize = true;
-            this.cbMD5.Checked = true;
-            this.cbMD5.CheckState = System.Windows.Forms.CheckState.Checked;
             this.cbMD5.Location = new System.Drawing.Point(1, 1);
             this.cbMD5.Margin = new System.Windows.Forms.Padding(0);
             this.cbMD5.Name = "cbMD5";
@@ -98,8 +96,6 @@ namespace Hashtool
             this.cbSHA1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.cbSHA1.AutoSize = true;
-            this.cbSHA1.Checked = true;
-            this.cbSHA1.CheckState = System.Windows.Forms.CheckState.Checked;
             this.cbSHA1.Location = new System.Drawing.Point(1, 28);
             this.cbSHA1.Margin = new System.Windows.Forms.Padding(0);
             this.cbSHA1.Name = "cbSHA1";
@@ -152,8 +148,6 @@ namespace Hashtool
             this.cbCRC32.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.cbCRC32.AutoSize = true;
-            this.cbCRC32.Checked = true;
-            this.cbCRC32.CheckState = System.Windows.Forms.CheckState.Checked;
             this.cbCRC32.Location = new System.Drawing.Point(1, 163);
             this.cbCRC32.Margin = new System.Windows.Forms.Padding(0);
             this.cbCRC32.Name = "cbCRC32";
@@ -417,8 +411,6 @@ namespace Hashtool
             this.cbUpperCase.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.cbUpperCase.AutoSize = true;
-            this.cbUpperCase.Checked = true;
-            this.cbUpperCase.CheckState = System.Windows.Forms.CheckState.Checked;
             this.cbUpperCase.Location = new System.Drawing.Point(1, 1);
             this.cbUpperCase.Margin = new System.Windows.Forms.Padding(0);
             this.cbUpperCase.Name = "cbUpperCase";
@@ -433,8 +425,6 @@ namespace Hashtool
             this.cbUseMultiThread.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.cbUseMultiThread.AutoSize = true;
-            this.cbUseMultiThread.Checked = true;
-            this.cbUseMultiThread.CheckState = System.Windows.Forms.CheckState.Checked;
             this.cbUseMultiThread.Location = new System.Drawing.Point(1, 28);
             this.cbUseMultiThread.Margin = new System.Windows.Forms.Padding(0);
             this.cbUseMultiThread.Name = "cbUseMultiThread";

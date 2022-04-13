@@ -373,7 +373,7 @@ namespace Hashtool
             var hashObj = HashAlgHandler.GetHashObj(algType);
             hashObj.Initialize();
 
-            var bufferSize = 10240;
+            var bufferSize = 40960;
             var buffer = new byte[bufferSize];
             var readCount = 0;
             if (fileInfo.Length > 0)

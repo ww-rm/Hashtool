@@ -69,7 +69,7 @@ namespace Hashtool
         }
     }
 
-    public abstract class SHA3Base : HashAlgorithm
+    public abstract partial class SHA3Base
     {
         // 常量
         //protected const int b = 1600;
@@ -88,31 +88,35 @@ namespace Hashtool
         {
             0x0000000000000001,
             0x0000000000008082,
-            0x000000000000808a,
-            0x0000000080008000,
+            0x800000000000808a,
+            0x8000000080008000,
             0x000000000000808b,
             0x0000000080000001,
-            0x0000000080008081,
-            0x0000000000008009,
+            0x8000000080008081,
+            0x8000000000008009,
             0x000000000000008a,
             0x0000000000000088,
             0x0000000080008009,
             0x000000008000000a,
             0x000000008000808b,
-            0x000000000000008b,
-            0x0000000000008089,
-            0x0000000000008003,
-            0x0000000000008002,
-            0x0000000000000080,
+            0x800000000000008b,
+            0x8000000000008089,
+            0x8000000000008003,
+            0x8000000000008002,
+            0x8000000000000080,
             0x000000000000800a,
-            0x000000008000000a,
-            0x0000000080008081,
-            0x0000000000008080,
+            0x800000008000000a,
+            0x8000000080008081,
+            0x8000000000008080,
             0x0000000080000001,
-            0x0000000080008008
+            0x8000000080008008
         };
 
-        protected static void PreCompRCtable()
+        // 放置顺序是先 x 后 y, 64 bit 小端存储
+        // (0, 0) -> (0, 1) -> ... (y, x) -> (y, x + 1) -> (4, 4)
+        private ulong[,] state = new ulong[5, 5];
+
+        private static void PreCompRCtable()
         {
             ulong rc(int t)
             {
@@ -139,10 +143,6 @@ namespace Hashtool
             }
         }
 
-        // 放置顺序是先 x 后 y, 64 bit 小端存储
-        // (0, 0) -> (0, 1) -> ... (y, x) -> (y, x + 1) -> (4, 4)
-        private ulong[,] state = new ulong[5, 5];
-
         /// <summary>
         /// 循环左移
         /// </summary>
@@ -156,26 +156,14 @@ namespace Hashtool
             return (X << count) | (X >> (-count));
         }
 
-        /// <summary>
-        /// 循环右移
-        /// </summary>
-        /// <param name="X"></param>
-        /// <param name="count"></param>
-        /// <returns></returns>
-        private static ulong ROR(ulong X, int count)
-        {
-            // C# 里移位运算符自动模数值长度, 所以不需要对 count 进行处理
-            // 当 count 为 0 或 64 时, 左右两半都没移位, 因此只能用或运算符进行连接
-            return (X >> count) | (X << (-count));
-        }
-
+        #region Keccak 的 5 个 Step Mappings 函数
 
         private ulong[] C = new ulong[5];
         private ulong[] D = new ulong[5];
         private void Theta()
         {
             // 把 5 个 Plane 压缩成 C
-            for(int x = 0; x < 5; x++)
+            for (int x = 0; x < 5; x++)
             {
                 C[x] = state[0, x] ^ state[1, x] ^ state[2, x] ^ state[3, x] ^ state[4, x];
             }
@@ -188,9 +176,9 @@ namespace Hashtool
             D[4] = C[3] ^ ROL(C[0], 1);
 
             // 对每一个 Plane[i] 用 D 异或一次
-            for(int y = 0; y < 5; y++)
+            for (int y = 0; y < 5; y++)
             {
-                for(int x = 0; x < 5; x++)
+                for (int x = 0; x < 5; x++)
                 {
                     state[y, x] ^= D[x];
                 }
@@ -240,10 +228,10 @@ namespace Hashtool
         private void Chi()
         {
             ulong tmp1, tmp2;
-            for(int y = 0; y < 5; y++)
-            { 
-                tmp1 = state[y, 1];
-                tmp2 = state[y, 2];
+            for (int y = 0; y < 5; y++)
+            {
+                tmp1 = state[y, 0];
+                tmp2 = state[y, 1];
                 state[y, 0] ^= ~state[y, 1] & state[y, 2];
                 state[y, 1] ^= ~state[y, 2] & state[y, 3];
                 state[y, 2] ^= ~state[y, 3] & state[y, 4];
@@ -257,58 +245,174 @@ namespace Hashtool
             state[0, 0] ^= RC_table[roundIndex];
         }
 
-        protected void Rnd(int roundIndex)
-        {
-            Theta();
-            Rho();
-            Pi();
-            Chi();
-            Iota(roundIndex);
-        }
+        #endregion
 
-        protected void Keccak()
+        // Keccak-p[1600, 24]
+        private void Keccak_p_1600_24()
         {
             for (int i = 0; i < 24; i++)
             {
-                Rnd(i);
+                Theta();
+                Rho();
+                Pi();
+                Chi();
+                Iota(i);
             }
+        }
+    }
+
+    public abstract partial class SHA3Base : HashAlgorithm
+    {
+        
+        private ulong[,] blockBuffer = new ulong[5, 5];
+
+        private byte[] dataBuffer;
+        private int dataBufferLen = 0; // 最大长度为 rSize
+
+        private int cSize;
+        private int dSize;
+        private int rSize { get { return 200 - cSize; } }
+        
+        public SHA3Base(int c, int d)
+        {
+            cSize = c / 8;
+            dSize = d / 8;
+            dataBuffer = new byte[rSize];
+        }
+
+        /// <summary>
+        /// 填充 blockBuffer
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="dataStart"></param>
+        private void ReadBlock(byte[] data, int dataStart = 0)
+        {
+            // 按小端序读取数据
+            for (int i = 0; i < rSize / 8; i++)
+            {
+                blockBuffer[i / 5, i % 5] = ((ulong)data[dataStart + i * 8 + 7] << 56)
+                                          | ((ulong)data[dataStart + i * 8 + 6] << 48)
+                                          | ((ulong)data[dataStart + i * 8 + 5] << 40)
+                                          | ((ulong)data[dataStart + i * 8 + 4] << 32)
+                                          | ((ulong)data[dataStart + i * 8 + 3] << 24)
+                                          | ((ulong)data[dataStart + i * 8 + 2] << 16)
+                                          | ((ulong)data[dataStart + i * 8 + 1] <<  8)
+                                          | ((ulong)data[dataStart + i * 8    ]      );
+            }
+
+            // 剩余的 cSize 部分全部 0x00 填充
+            for (int i = rSize / 8; i < 25; i++)
+            {
+                blockBuffer[i / 5, i % 5] = 0x00u;
+            }
+        }
+
+        /// <summary>
+        /// 吸收一个分组数据
+        /// </summary>
+        private void Absorbing()
+        {
+            for (int y = 0; y < 5; y++)
+            {
+                for (int x = 0; x < 5; x++)
+                {
+                    state[y, x] ^= blockBuffer[y, x];
+                }
+            }
+            Keccak_p_1600_24();
+        }
+
+        public override void Initialize()
+        {
+            for(int y = 0; y < 5; y++)
+            {
+                for (int x = 0; x < 5; x++)
+                {
+                    state[y, x] = 0;
+                }
+            }
+
+            dataBufferLen = 0;
+        }
+
+        protected override void HashCore(byte[] array, int ibStart, int cbSize)
+        {
+            if (cbSize + dataBufferLen >= rSize)
+            {
+                int readPos = ibStart;
+
+                // 处理上一次缓冲区剩余的数据
+                Array.Copy(array, 0, dataBuffer, dataBufferLen, rSize - dataBufferLen);
+                readPos += rSize - dataBufferLen;
+                ReadBlock(dataBuffer);
+                Absorbing();
+
+                // 按每 rSize 个字节来读取数据
+                while (readPos + rSize < ibStart + cbSize)
+                {
+                    ReadBlock(array, ibStart + readPos);
+                    readPos += rSize;
+                    Absorbing();
+                }
+
+                // 保留本次剩余数据
+                Array.Copy(array, ibStart + readPos, dataBuffer, 0, cbSize - (readPos - ibStart));
+                dataBufferLen = cbSize - (readPos - ibStart);
+            }
+            else
+            {
+                // 向缓冲区增加保留数据
+                Array.Copy(array, ibStart, dataBuffer, dataBufferLen, cbSize);
+                dataBufferLen += cbSize;
+            }
+        }
+
+        protected override byte[] HashFinal()
+        {
+            byte[] hashValue = new byte[dSize];
+
+            // 尾块填充
+            if (dataBufferLen == rSize - 1)
+            {
+                dataBuffer[rSize - 1] = 0x86;
+            }
+            else
+            {
+                dataBuffer[dataBufferLen++] = 0x06;
+                for(int i = dataBufferLen; i < rSize - 1; i++)
+                {
+                    dataBuffer[i] = 0x00;
+                }
+                dataBuffer[rSize - 1] = 0x80;
+            }
+
+            ReadBlock(dataBuffer);
+            Absorbing();
+
+            // SHA3 算法的 r 一定大于 d, 所以没有实际挤压过程
+            for (int i = 0; i < dSize / 8; i++)
+            {
+                hashValue[i * 8    ] = (byte)(state[i / 5, i % 5]      );
+                hashValue[i * 8 + 1] = (byte)(state[i / 5, i % 5] >>  8);
+                hashValue[i * 8 + 2] = (byte)(state[i / 5, i % 5] >> 16);
+                hashValue[i * 8 + 3] = (byte)(state[i / 5, i % 5] >> 24);
+                hashValue[i * 8 + 4] = (byte)(state[i / 5, i % 5] >> 32);
+                hashValue[i * 8 + 5] = (byte)(state[i / 5, i % 5] >> 40);
+                hashValue[i * 8 + 6] = (byte)(state[i / 5, i % 5] >> 48);
+                hashValue[i * 8 + 7] = (byte)(state[i / 5, i % 5] >> 56);
+            }
+            return hashValue;
         }
     }
 
     public class SHA3_256 : SHA3Base
     {
-        public override void Initialize()
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override void HashCore(byte[] array, int ibStart, int cbSize)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override byte[] HashFinal()
-        {
-            throw new NotImplementedException();
-        }
+        public SHA3_256() : base(512, 256) { }
     }
 
     public class SHA3_512 : SHA3Base
     {
-        public override void Initialize()
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override void HashCore(byte[] array, int ibStart, int cbSize)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override byte[] HashFinal()
-        {
-            throw new NotImplementedException();
-        }
+        public SHA3_512() : base(1024, 512) { }
     }
 
     public class SM3 : HashAlgorithm
@@ -343,7 +447,7 @@ namespace Hashtool
 
         private uint[] wordsBuffer1 = new uint[68];
         private uint[] wordsBuffer2 = new uint[64];
-
+        
         #region 静态辅助方法
 
         private static uint T(int j)
@@ -448,7 +552,7 @@ namespace Hashtool
         /// <param name="data"></param>
         /// <param name="dataStart"></param>
         /// <returns></returns>
-        private void Read64Bytes(byte[] data, int dataStart = 0)
+        private void ReadBlock(byte[] data, int dataStart = 0)
         {
             for (int i = 0; i < 16; i++)
             {
@@ -486,13 +590,13 @@ namespace Hashtool
                 // 处理上一次缓冲区剩余的数据
                 Array.Copy(array, 0, dataBuffer, dataBufferLen, 64 - dataBufferLen);
                 readPos += 64 - dataBufferLen;
-                Read64Bytes(dataBuffer);
+                ReadBlock(dataBuffer);
                 CF();
 
                 // 按每 64 个字节来读取数据
                 while (readPos + 64 < ibStart + cbSize)
                 {
-                    Read64Bytes(array, ibStart + readPos);
+                    ReadBlock(array, ibStart + readPos);
                     readPos += 64;
                     CF();
                 }
@@ -535,7 +639,7 @@ namespace Hashtool
             dataBuffer[62] = (byte)(msgBitLen >>  8);
             dataBuffer[63] = (byte)(msgBitLen      );
 
-            Read64Bytes(dataBuffer);
+            ReadBlock(dataBuffer);
             CF();
 
             for (int i = 0; i < 8; i++)
