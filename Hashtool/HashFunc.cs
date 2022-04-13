@@ -267,13 +267,12 @@ namespace Hashtool
         private byte[] dataBuffer;
         private int dataBufferLen = 0; // 最大长度为 rSize
 
-        private int cSize;
         private int dSize;
+        private int cSize { get { return 2 * dSize; } }
         private int rSize { get { return 200 - cSize; } }
         
-        public SHA3Base(int c, int d)
+        public SHA3Base(int d)
         {
-            cSize = c / 8;
             dSize = d / 8;
             dataBuffer = new byte[rSize];
         }
@@ -405,12 +404,12 @@ namespace Hashtool
 
     public class SHA3_256 : SHA3Base
     {
-        public SHA3_256() : base(512, 256) { }
+        public SHA3_256() : base(256) { }
     }
 
     public class SHA3_512 : SHA3Base
     {
-        public SHA3_512() : base(1024, 512) { }
+        public SHA3_512() : base(512) { }
     }
 
     public class SM3 : HashAlgorithm
