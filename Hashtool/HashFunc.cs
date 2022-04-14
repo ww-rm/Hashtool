@@ -74,12 +74,12 @@ namespace Hashtool
         //protected const int w = 64;
         //protected const int l = 6;
 
-        private static int[,] laneOffset = new int[5, 5] {
-            {   0,  1,  190,  28,  91 },
-            {  36, 300,   6,  55, 276 },
-            {   3,  10, 171, 153, 231 },
-            { 105,  45,  15,  21, 136 },
-            { 210,  66, 253, 120,  78 },
+        private static int[] laneOffset = new int[25] {
+               0,  1,  190,  28,  91,
+              36, 300,   6,  55, 276,
+               3,  10, 171, 153, 231,
+             105,  45,  15,  21, 136,
+             210,  66, 253, 120,  78,
         };
 
         private static ulong[] RC_table = new ulong[24]
@@ -112,7 +112,7 @@ namespace Hashtool
 
         // 放置顺序是先 x 后 y, 64 bit 小端存储
         // (0, 0) -> (0, 1) -> ... (y, x) -> (y, x + 1) -> (4, 4)
-        private ulong[,] state = new ulong[5, 5];
+        private ulong[] state = new ulong[25];
 
         private static void PreCompRCtable()
         {
@@ -163,7 +163,7 @@ namespace Hashtool
             // 把 5 个 Plane 压缩成 C
             for (int x = 0; x < 5; x++)
             {
-                C[x] = state[0, x] ^ state[1, x] ^ state[2, x] ^ state[3, x] ^ state[4, x];
+                C[x] = state[0 * 5 + x] ^ state[1 * 5 + x] ^ state[2 * 5 + x] ^ state[3 * 5 + x] ^ state[4 * 5 + x];
             }
 
             // 对 C 混合产生 D
@@ -178,49 +178,46 @@ namespace Hashtool
             {
                 for (int x = 0; x < 5; x++)
                 {
-                    state[y, x] ^= D[x];
+                    state[y * 5 + x] ^= D[x];
                 }
             }
         }
 
         private void Rho()
         {
-            for (int y = 0; y < 5; y++)
+            for (int i = 0; i < 25; i++)
             {
-                for (int x = 0; x < 5; x++)
-                {
-                    state[y, x] = ROL(state[y, x], laneOffset[y, x]);
-                }
+                state[i] = ROL(state[i], laneOffset[i]);
             }
         }
 
         private void Pi()
         {
-            ulong tmp = state[3, 3];
-            state[3, 3] = state[3, 2];
-            state[3, 2] = state[2, 1];
-            state[2, 1] = state[1, 2];
-            state[1, 2] = state[2, 0];
-            state[2, 0] = state[0, 1];
-            state[0, 1] = state[1, 1];
-            state[1, 1] = state[1, 4];
-            state[1, 4] = state[4, 2];
-            state[4, 2] = state[2, 4];
-            state[2, 4] = state[4, 0];
-            state[4, 0] = state[0, 2];
-            state[0, 2] = state[2, 2];
-            state[2, 2] = state[2, 3];
-            state[2, 3] = state[3, 4];
-            state[3, 4] = state[4, 3];
-            state[4, 3] = state[3, 0];
-            state[3, 0] = state[0, 4];
-            state[0, 4] = state[4, 4];
-            state[4, 4] = state[4, 1];
-            state[4, 1] = state[1, 3];
-            state[1, 3] = state[3, 1];
-            state[3, 1] = state[1, 0];
-            state[1, 0] = state[0, 3];
-            state[0, 3] = tmp;
+            ulong tmp = state[3 * 5 + 3];
+            state[3 * 5 + 3] = state[3 * 5 + 2];
+            state[3 * 5 + 2] = state[2 * 5 + 1];
+            state[2 * 5 + 1] = state[1 * 5 + 2];
+            state[1 * 5 + 2] = state[2 * 5 + 0];
+            state[2 * 5 + 0] = state[0 * 5 + 1];
+            state[0 * 5 + 1] = state[1 * 5 + 1];
+            state[1 * 5 + 1] = state[1 * 5 + 4];
+            state[1 * 5 + 4] = state[4 * 5 + 2];
+            state[4 * 5 + 2] = state[2 * 5 + 4];
+            state[2 * 5 + 4] = state[4 * 5 + 0];
+            state[4 * 5 + 0] = state[0 * 5 + 2];
+            state[0 * 5 + 2] = state[2 * 5 + 2];
+            state[2 * 5 + 2] = state[2 * 5 + 3];
+            state[2 * 5 + 3] = state[3 * 5 + 4];
+            state[3 * 5 + 4] = state[4 * 5 + 3];
+            state[4 * 5 + 3] = state[3 * 5 + 0];
+            state[3 * 5 + 0] = state[0 * 5 + 4];
+            state[0 * 5 + 4] = state[4 * 5 + 4];
+            state[4 * 5 + 4] = state[4 * 5 + 1];
+            state[4 * 5 + 1] = state[1 * 5 + 3];
+            state[1 * 5 + 3] = state[3 * 5 + 1];
+            state[3 * 5 + 1] = state[1 * 5 + 0];
+            state[1 * 5 + 0] = state[0 * 5 + 3];
+            state[0 * 5 + 3] = tmp;
         }
 
         private void Chi()
@@ -228,19 +225,19 @@ namespace Hashtool
             ulong tmp1, tmp2;
             for (int y = 0; y < 5; y++)
             {
-                tmp1 = state[y, 0];
-                tmp2 = state[y, 1];
-                state[y, 0] ^= ~state[y, 1] & state[y, 2];
-                state[y, 1] ^= ~state[y, 2] & state[y, 3];
-                state[y, 2] ^= ~state[y, 3] & state[y, 4];
-                state[y, 3] ^= ~state[y, 4] & tmp1;
-                state[y, 4] ^= ~tmp1 & tmp2;
+                tmp1 = state[y * 5 + 0];
+                tmp2 = state[y * 5 + 1];
+                state[y * 5 + 0] ^= ~state[y * 5 + 1] & state[y * 5 + 2];
+                state[y * 5 + 1] ^= ~state[y * 5 + 2] & state[y * 5 + 3];
+                state[y * 5 + 2] ^= ~state[y * 5 + 3] & state[y * 5 + 4];
+                state[y * 5 + 3] ^= ~state[y * 5 + 4] & tmp1;
+                state[y * 5 + 4] ^= ~tmp1 & tmp2;
             }
         }
 
         private void Iota(int roundIndex)
         {
-            state[0, 0] ^= RC_table[roundIndex];
+            state[0] ^= RC_table[roundIndex];
         }
 
         #endregion
@@ -261,9 +258,6 @@ namespace Hashtool
 
     public abstract partial class SHA3Base : HashAlgorithm
     {
-        
-        private ulong[,] blockBuffer = new ulong[5, 5];
-
         private byte[] dataBuffer;
         private int dataBufferLen = 0; // 最大长度为 rSize
 
@@ -287,46 +281,28 @@ namespace Hashtool
             // 按小端序读取数据
             for (int i = 0; i < rSize / 8; i++)
             {
-                blockBuffer[i / 5, i % 5] = ((ulong)data[dataStart + i * 8 + 7] << 56)
-                                          | ((ulong)data[dataStart + i * 8 + 6] << 48)
-                                          | ((ulong)data[dataStart + i * 8 + 5] << 40)
-                                          | ((ulong)data[dataStart + i * 8 + 4] << 32)
-                                          | ((ulong)data[dataStart + i * 8 + 3] << 24)
-                                          | ((ulong)data[dataStart + i * 8 + 2] << 16)
-                                          | ((ulong)data[dataStart + i * 8 + 1] <<  8)
-                                          | ((ulong)data[dataStart + i * 8    ]      );
+                state[i] ^= ((ulong)data[dataStart + i * 8 + 7] << 56)
+                          | ((ulong)data[dataStart + i * 8 + 6] << 48)
+                          | ((ulong)data[dataStart + i * 8 + 5] << 40)
+                          | ((ulong)data[dataStart + i * 8 + 4] << 32)
+                          | ((ulong)data[dataStart + i * 8 + 3] << 24)
+                          | ((ulong)data[dataStart + i * 8 + 2] << 16)
+                          | ((ulong)data[dataStart + i * 8 + 1] <<  8)
+                          | ((ulong)data[dataStart + i * 8    ]      );
             }
 
-            // 剩余的 cSize 部分全部 0x00 填充
-            for (int i = rSize / 8; i < 25; i++)
-            {
-                blockBuffer[i / 5, i % 5] = 0x00u;
-            }
-        }
-
-        /// <summary>
-        /// 吸收一个分组数据
-        /// </summary>
-        private void Absorbing()
-        {
-            for (int y = 0; y < 5; y++)
-            {
-                for (int x = 0; x < 5; x++)
-                {
-                    state[y, x] ^= blockBuffer[y, x];
-                }
-            }
-            Keccak_p_1600_24();
+            // 剩余的 cSize 部分全部是 0x00 填充, 所以 state 异或之后不变
+            //for (int i = rSize / 8; i < 25; i++)
+            //{
+            //    state[i] ^= 0x00u;
+            //}
         }
 
         public override void Initialize()
         {
-            for(int y = 0; y < 5; y++)
+            for(int i = 0; i < 25; i++)
             {
-                for (int x = 0; x < 5; x++)
-                {
-                    state[y, x] = 0;
-                }
+                state[i] = 0;
             }
 
             dataBufferLen = 0;
@@ -342,14 +318,14 @@ namespace Hashtool
                 Array.Copy(array, 0, dataBuffer, dataBufferLen, rSize - dataBufferLen);
                 readPos += rSize - dataBufferLen;
                 ReadBlock(dataBuffer);
-                Absorbing();
+                Keccak_p_1600_24();
 
                 // 按每 rSize 个字节来读取数据
                 while (readPos + rSize < ibStart + cbSize)
                 {
                     ReadBlock(array, ibStart + readPos);
                     readPos += rSize;
-                    Absorbing();
+                    Keccak_p_1600_24();
                 }
 
                 // 保留本次剩余数据
@@ -384,19 +360,19 @@ namespace Hashtool
             }
 
             ReadBlock(dataBuffer);
-            Absorbing();
+            Keccak_p_1600_24();
 
             // SHA3 算法的 r 一定大于 d, 所以没有实际挤压过程
             for (int i = 0; i < dSize / 8; i++)
             {
-                hashValue[i * 8    ] = (byte)(state[i / 5, i % 5]      );
-                hashValue[i * 8 + 1] = (byte)(state[i / 5, i % 5] >>  8);
-                hashValue[i * 8 + 2] = (byte)(state[i / 5, i % 5] >> 16);
-                hashValue[i * 8 + 3] = (byte)(state[i / 5, i % 5] >> 24);
-                hashValue[i * 8 + 4] = (byte)(state[i / 5, i % 5] >> 32);
-                hashValue[i * 8 + 5] = (byte)(state[i / 5, i % 5] >> 40);
-                hashValue[i * 8 + 6] = (byte)(state[i / 5, i % 5] >> 48);
-                hashValue[i * 8 + 7] = (byte)(state[i / 5, i % 5] >> 56);
+                hashValue[i * 8    ] = (byte)(state[i]      );
+                hashValue[i * 8 + 1] = (byte)(state[i] >>  8);
+                hashValue[i * 8 + 2] = (byte)(state[i] >> 16);
+                hashValue[i * 8 + 3] = (byte)(state[i] >> 24);
+                hashValue[i * 8 + 4] = (byte)(state[i] >> 32);
+                hashValue[i * 8 + 5] = (byte)(state[i] >> 40);
+                hashValue[i * 8 + 6] = (byte)(state[i] >> 48);
+                hashValue[i * 8 + 7] = (byte)(state[i] >> 56);
             }
             return hashValue;
         }
