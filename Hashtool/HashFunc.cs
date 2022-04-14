@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 
 namespace Hashtool
@@ -75,7 +76,7 @@ namespace Hashtool
         //protected const int l = 6;
 
         private static int[] laneOffset = new int[25] {
-               0,  1,  190,  28,  91,
+               0,   1, 190,  28,  91,
               36, 300,   6,  55, 276,
                3,  10, 171, 153, 231,
              105,  45,  15,  21, 136,
@@ -161,10 +162,15 @@ namespace Hashtool
         private void Theta()
         {
             // 把 5 个 Plane 压缩成 C
-            for (int x = 0; x < 5; x++)
-            {
-                C[x] = state[0 * 5 + x] ^ state[1 * 5 + x] ^ state[2 * 5 + x] ^ state[3 * 5 + x] ^ state[4 * 5 + x];
-            }
+            //for (int x = 0; x < 5; x++)
+            //{
+            //    C[x] = state[0 * 5 + x] ^ state[1 * 5 + x] ^ state[2 * 5 + x] ^ state[3 * 5 + x] ^ state[4 * 5 + x];
+            //}
+            C[0] = state[0] ^ state[5] ^ state[10] ^ state[15] ^ state[20];
+            C[1] = state[1] ^ state[6] ^ state[11] ^ state[16] ^ state[21];
+            C[2] = state[2] ^ state[7] ^ state[12] ^ state[17] ^ state[22];
+            C[3] = state[3] ^ state[8] ^ state[13] ^ state[18] ^ state[23];
+            C[4] = state[4] ^ state[9] ^ state[14] ^ state[19] ^ state[24];
 
             // 对 C 混合产生 D
             D[0] = C[4] ^ ROL(C[1], 1);
@@ -174,65 +180,158 @@ namespace Hashtool
             D[4] = C[3] ^ ROL(C[0], 1);
 
             // 对每一个 Plane[i] 用 D 异或一次
-            for (int y = 0; y < 5; y++)
-            {
-                for (int x = 0; x < 5; x++)
-                {
-                    state[y * 5 + x] ^= D[x];
-                }
-            }
+            //for (int y = 0; y < 5; y++)
+            //{
+            //    for (int x = 0; x < 5; x++)
+            //    {
+            //        state[y * 5 + x] ^= D[x];
+            //    }
+            //}
+            state[0] ^= D[0];
+            state[1] ^= D[1];
+            state[2] ^= D[2];
+            state[3] ^= D[3];
+            state[4] ^= D[4];
+
+            state[5] ^= D[0];
+            state[6] ^= D[1];
+            state[7] ^= D[2];
+            state[8] ^= D[3];
+            state[9] ^= D[4];
+
+            state[10] ^= D[0];
+            state[11] ^= D[1];
+            state[12] ^= D[2];
+            state[13] ^= D[3];
+            state[14] ^= D[4];
+
+            state[15] ^= D[0];
+            state[16] ^= D[1];
+            state[17] ^= D[2];
+            state[18] ^= D[3];
+            state[19] ^= D[4];
+
+            state[20] ^= D[0];
+            state[21] ^= D[1];
+            state[22] ^= D[2];
+            state[23] ^= D[3];
+            state[24] ^= D[4];
         }
 
         private void Rho()
         {
-            for (int i = 0; i < 25; i++)
-            {
-                state[i] = ROL(state[i], laneOffset[i]);
-            }
+            //for (int i = 0; i < 25; i++)
+            //{
+            //    state[i] = ROL(state[i], laneOffset[i]);
+            //}
+            state[0] = ROL(state[0], 0);
+            state[1] = ROL(state[1], 1);
+            state[2] = ROL(state[2], 190);
+            state[3] = ROL(state[3], 28);
+            state[4] = ROL(state[4], 91);
+            state[5] = ROL(state[5], 36);
+            state[6] = ROL(state[6], 300);
+            state[7] = ROL(state[7], 6);
+            state[8] = ROL(state[8], 55);
+            state[9] = ROL(state[9], 276);
+            state[10] = ROL(state[10], 3);
+            state[11] = ROL(state[11], 10);
+            state[12] = ROL(state[12], 171);
+            state[13] = ROL(state[13], 153);
+            state[14] = ROL(state[14], 231);
+            state[15] = ROL(state[15], 105);
+            state[16] = ROL(state[16], 45);
+            state[17] = ROL(state[17], 15);
+            state[18] = ROL(state[18], 21);
+            state[19] = ROL(state[19], 136);
+            state[20] = ROL(state[20], 210);
+            state[21] = ROL(state[21], 66);
+            state[22] = ROL(state[22], 253);
+            state[23] = ROL(state[23], 120);
+            state[24] = ROL(state[24], 78);
         }
 
         private void Pi()
         {
-            ulong tmp = state[3 * 5 + 3];
-            state[3 * 5 + 3] = state[3 * 5 + 2];
-            state[3 * 5 + 2] = state[2 * 5 + 1];
-            state[2 * 5 + 1] = state[1 * 5 + 2];
-            state[1 * 5 + 2] = state[2 * 5 + 0];
-            state[2 * 5 + 0] = state[0 * 5 + 1];
-            state[0 * 5 + 1] = state[1 * 5 + 1];
-            state[1 * 5 + 1] = state[1 * 5 + 4];
-            state[1 * 5 + 4] = state[4 * 5 + 2];
-            state[4 * 5 + 2] = state[2 * 5 + 4];
-            state[2 * 5 + 4] = state[4 * 5 + 0];
-            state[4 * 5 + 0] = state[0 * 5 + 2];
-            state[0 * 5 + 2] = state[2 * 5 + 2];
-            state[2 * 5 + 2] = state[2 * 5 + 3];
-            state[2 * 5 + 3] = state[3 * 5 + 4];
-            state[3 * 5 + 4] = state[4 * 5 + 3];
-            state[4 * 5 + 3] = state[3 * 5 + 0];
-            state[3 * 5 + 0] = state[0 * 5 + 4];
-            state[0 * 5 + 4] = state[4 * 5 + 4];
-            state[4 * 5 + 4] = state[4 * 5 + 1];
-            state[4 * 5 + 1] = state[1 * 5 + 3];
-            state[1 * 5 + 3] = state[3 * 5 + 1];
-            state[3 * 5 + 1] = state[1 * 5 + 0];
-            state[1 * 5 + 0] = state[0 * 5 + 3];
-            state[0 * 5 + 3] = tmp;
+            ulong tmp = state[18];
+            state[18] = state[17];
+            state[17] = state[11];
+            state[11] = state[7];
+            state[7] = state[10];
+            state[10] = state[1];
+            state[1] = state[6];
+            state[6] = state[9];
+            state[9] = state[22];
+            state[22] = state[14];
+            state[14] = state[20];
+            state[20] = state[2];
+            state[2] = state[12];
+            state[12] = state[13];
+            state[13] = state[19];
+            state[19] = state[23];
+            state[23] = state[15];
+            state[15] = state[4];
+            state[4] = state[24];
+            state[24] = state[21];
+            state[21] = state[8];
+            state[8] = state[16];
+            state[16] = state[5];
+            state[5] = state[3];
+            state[3] = tmp;
         }
 
         private void Chi()
         {
             ulong tmp1, tmp2;
-            for (int y = 0; y < 5; y++)
-            {
-                tmp1 = state[y * 5 + 0];
-                tmp2 = state[y * 5 + 1];
-                state[y * 5 + 0] ^= ~state[y * 5 + 1] & state[y * 5 + 2];
-                state[y * 5 + 1] ^= ~state[y * 5 + 2] & state[y * 5 + 3];
-                state[y * 5 + 2] ^= ~state[y * 5 + 3] & state[y * 5 + 4];
-                state[y * 5 + 3] ^= ~state[y * 5 + 4] & tmp1;
-                state[y * 5 + 4] ^= ~tmp1 & tmp2;
-            }
+            //for (int y = 0; y < 5; y++)
+            //{
+            //    tmp1 = state[y * 5 + 0];
+            //    tmp2 = state[y * 5 + 1];
+            //    state[y * 5 + 0] ^= ~state[y * 5 + 1] & state[y * 5 + 2];
+            //    state[y * 5 + 1] ^= ~state[y * 5 + 2] & state[y * 5 + 3];
+            //    state[y * 5 + 2] ^= ~state[y * 5 + 3] & state[y * 5 + 4];
+            //    state[y * 5 + 3] ^= ~state[y * 5 + 4] & tmp1;
+            //    state[y * 5 + 4] ^= ~tmp1 & tmp2;
+            //}
+            tmp1 = state[0];
+            tmp2 = state[1];
+            state[0] ^= ~state[1] & state[2];
+            state[1] ^= ~state[2] & state[3];
+            state[2] ^= ~state[3] & state[4];
+            state[3] ^= ~state[4] & tmp1;
+            state[4] ^= ~tmp1 & tmp2;
+
+            tmp1 = state[5];
+            tmp2 = state[6];
+            state[5] ^= ~state[6] & state[7];
+            state[6] ^= ~state[7] & state[8];
+            state[7] ^= ~state[8] & state[9];
+            state[8] ^= ~state[9] & tmp1;
+            state[9] ^= ~tmp1 & tmp2;
+
+            tmp1 = state[10];
+            tmp2 = state[11];
+            state[10] ^= ~state[11] & state[12];
+            state[11] ^= ~state[12] & state[13];
+            state[12] ^= ~state[13] & state[14];
+            state[13] ^= ~state[14] & tmp1;
+            state[14] ^= ~tmp1 & tmp2;
+
+            tmp1 = state[15];
+            tmp2 = state[16];
+            state[15] ^= ~state[16] & state[17];
+            state[16] ^= ~state[17] & state[18];
+            state[17] ^= ~state[18] & state[19];
+            state[18] ^= ~state[19] & tmp1;
+            state[19] ^= ~tmp1 & tmp2;
+
+            tmp1 = state[20];
+            tmp2 = state[21];
+            state[20] ^= ~state[21] & state[22];
+            state[21] ^= ~state[22] & state[23];
+            state[22] ^= ~state[23] & state[24];
+            state[23] ^= ~state[24] & tmp1;
+            state[24] ^= ~tmp1 & tmp2;
         }
 
         private void Iota(int roundIndex)
