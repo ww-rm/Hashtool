@@ -468,6 +468,7 @@ namespace Hashtool
             this.Name = "MainWnd";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Hashtool";
+            this.TopMost = true;
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.pnlButton.ResumeLayout(false);
             this.pnlButton.PerformLayout();
