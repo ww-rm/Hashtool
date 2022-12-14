@@ -94,6 +94,7 @@ namespace Hashtool
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "关于";
+            this.TopMost = true;
             this.Load += new System.EventHandler(this.AboutBox_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
