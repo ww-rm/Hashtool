@@ -697,10 +697,27 @@ namespace Hashtool
 
             // 尾部填充
             dataBuffer[dataBufferLen] = 0x80;
-            for (int i = dataBufferLen + 1; i < 56; i++)
+            if (dataBufferLen < 56)
             {
-                dataBuffer[i] = 0x00;
+                for (int i = dataBufferLen + 1; i < 56; i++)
+                {
+                    dataBuffer[i] = 0x00;
+                }
             }
+            else
+            {
+                for (int i = dataBufferLen + 1; i < 64; i++)
+                {
+                    dataBuffer[i] = 0x00;
+                }
+                ReadBlock(dataBuffer);
+                CF();
+                for (int i = 0; i < 56; i++)
+                {
+                    dataBuffer[i] = 0x00;
+                }
+            }
+
             ulong msgBitLen = msgLength * 8;
             dataBuffer[56] = (byte)(msgBitLen >> 56);
             dataBuffer[57] = (byte)(msgBitLen >> 48);
